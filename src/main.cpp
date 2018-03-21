@@ -2,6 +2,7 @@
 #include <list>
 #include "env.hpp"
 #include "game.hpp"
+#include "loader.hpp"
 #include "renderer.hpp"
 
 int main(int argc, char **argv) {
@@ -12,6 +13,9 @@ int main(int argc, char **argv) {
       {"textures/skybox_side.png", "textures/skybox_side.png",
        "textures/skybox_up.png", "textures/skybox_bottom.png",
        "textures/skybox_side.png", "textures/skybox_side.png"});
+  MeshLoader loader;
+  Model *model = loader.loadScene("anims/Jumping.dae");
+  // Model *model2 = loader.loadScene("anims/Jumping.dae");
   Game game;
   bool wireframe = false;
   while (!glfwWindowShouldClose(env.window)) {
@@ -20,6 +24,7 @@ int main(int argc, char **argv) {
     game.update(env);
     renderer.update(env);
     renderer.clearScreen();
+    model->pushRenderAttribs(renderer);
     game.render(env, renderer);
     glfwSwapBuffers(env.window);
     GL_DUMP_ERROR("draw loop");

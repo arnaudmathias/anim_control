@@ -1,14 +1,12 @@
 #include "vao.hpp"
 
 VAO::VAO(const std::vector<Vertex> &vertices) {
-  this->_vbo = 0;
-  this->vao = 0;
+  initialize();
   this->vertices_size = vertices.size();
-  this->indices_size = 0;
   glGenBuffers(1, &this->_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
   glBufferData(GL_ARRAY_BUFFER, this->vertices_size * sizeof(Vertex),
-               vertices.data(), GL_DYNAMIC_DRAW);
+               vertices.data(), GL_STATIC_DRAW);
 
   glGenVertexArrays(1, &this->vao);
   glBindVertexArray(this->vao);
@@ -16,22 +14,49 @@ VAO::VAO(const std::vector<Vertex> &vertices) {
   glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (GLvoid *)offsetof(Vertex, position));
-  glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                        (GLvoid *)offsetof(Vertex, attribs));
+  /*glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (GLvoid *)offsetof(Vertex, attribs));*/
   glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
+  // glEnableVertexAttribArray(1);
+}
+
+VAO::VAO(const std::vector<Vertex> &vertices,
+         const std::vector<unsigned int> &indices) {
+  initialize();
+  this->vertices_size = vertices.size();
+  this->indices_size = indices.size();
+  glGenBuffers(1, &this->_vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
+  glBufferData(GL_ARRAY_BUFFER, this->vertices_size * sizeof(Vertex),
+               vertices.data(), GL_STATIC_DRAW);
+
+  glGenBuffers(1, &this->_ebo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->_ebo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+               this->indices_size * sizeof(unsigned int), indices.data(),
+               GL_STATIC_DRAW);
+
+  glGenVertexArrays(1, &this->vao);
+  glBindVertexArray(this->vao);
+
+  glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->_ebo);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (GLvoid *)offsetof(Vertex, position));
+  /*glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (GLvoid *)offsetof(Vertex, attribs));*/
+  glEnableVertexAttribArray(0);
+  // glEnableVertexAttribArray(1);
 }
 
 VAO::VAO(const std::vector<glm::vec3> &positions) {
-  this->_vbo = 0;
-  this->vao = 0;
+  initialize();
   this->vertices_size = positions.size();
-  this->indices_size = 0;
 
   glGenBuffers(1, &this->_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
   glBufferData(GL_ARRAY_BUFFER, this->vertices_size * sizeof(glm::vec3),
-               positions.data(), GL_DYNAMIC_DRAW);
+               positions.data(), GL_STATIC_DRAW);
 
   glGenVertexArrays(1, &this->vao);
   glBindVertexArray(this->vao);
@@ -44,15 +69,13 @@ VAO::VAO(const std::vector<glm::vec3> &positions) {
 }
 
 VAO::VAO(const std::vector<glm::vec4> &positions) {
-  this->_vbo = 0;
-  this->vao = 0;
+  initialize();
   this->vertices_size = positions.size();
-  this->indices_size = 0;
 
   glGenBuffers(1, &this->_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
   glBufferData(GL_ARRAY_BUFFER, this->vertices_size * sizeof(glm::vec4),
-               positions.data(), GL_DYNAMIC_DRAW);
+               positions.data(), GL_STATIC_DRAW);
 
   glGenVertexArrays(1, &this->vao);
   glBindVertexArray(this->vao);
@@ -68,17 +91,26 @@ void VAO::update(const std::vector<Vertex> &vertices) {
   this->vertices_size = vertices.size();
   glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex),
-               vertices.data(), GL_DYNAMIC_DRAW);
+               vertices.data(), GL_STATIC_DRAW);
 }
 
 void VAO::update(const std::vector<glm::vec3> &positions) {
   this->vertices_size = positions.size();
   glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
   glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(glm::vec3),
-               positions.data(), GL_DYNAMIC_DRAW);
+               positions.data(), GL_STATIC_DRAW);
+}
+
+void VAO::initialize() {
+  this->_vbo = 0;
+  this->_ebo = 0;
+  this->vao = 0;
+  this->vertices_size = 0;
+  this->indices_size = 0;
 }
 
 VAO::~VAO() {
   if (this->_vbo != 0) glDeleteBuffers(1, &this->_vbo);
+  if (this->_ebo != 0) glDeleteBuffers(1, &this->_ebo);
   if (this->vao != 0) glDeleteVertexArrays(1, &this->vao);
 }

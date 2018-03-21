@@ -2,15 +2,21 @@ cmake_minimum_required(VERSION 3.5)
 project(anim_control)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
 find_package(OpenGL REQUIRED)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(ZLIB_LIBRARIES zlibstatic)
+set(BUILD_STATIC_LIB ON)
+set(BUILD_ASSIMP_TOOLS  ON)
+set(ASSIMP_BUILD_STATIC_LIB ON)
 
+add_subdirectory(third-party/assimp)
 add_subdirectory(third-party/glfw)
+include_directories(third-party/assimp/include)
 include_directories(third-party/glfw/include)
 include_directories(third-party/glad)
 include_directories(third-party/glm)
@@ -31,8 +37,10 @@ set(SOURCE_FILES
         src/texture.cpp
         src/culling.cpp
         src/io.cpp
+        src/loader.cpp
         third-party/glad/glad.c)
 
 add_executable(anim_control ${SOURCE_FILES})
 
+target_link_libraries(anim_control assimp)
 target_link_libraries(anim_control glfw ${GLFW_LIBRARIES})

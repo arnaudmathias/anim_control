@@ -16,6 +16,5 @@ class Game {
  private:
   bool _debugMode;
   Camera* _camera;
-  RenderAttrib faceRenderAttrib;
   void print_debug_info(const Env& env, Renderer& renderer, Camera& camera);
 };

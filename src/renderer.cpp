@@ -119,12 +119,18 @@ void Renderer::draw() {
   for (const auto &attrib : this->_renderAttribs) {
     updateUniforms(attrib, _shader->id);
     for (const auto &vao : attrib.vaos) {
-      if (vao != nullptr && vao->vertices_size > 0) {
-        glBindVertexArray(vao->vao);
-        glDrawArrays(GL_TRIANGLES, 0, vao->vertices_size);
+      if (vao != nullptr) {
+        if (vao->indices_size != 0) {
+          glBindVertexArray(vao->vao);
+          glDrawElements(GL_TRIANGLES, vao->indices_size, GL_UNSIGNED_INT, 0);
+        } else if (vao->vertices_size != 0) {
+          glBindVertexArray(vao->vao);
+          glDrawArrays(GL_TRIANGLES, 0, vao->vertices_size);
+        }
       }
     }
   }
+
   if (this->_cubeMapVao != nullptr) {
     glDepthFunc(GL_LEQUAL);
     switchShader(this->_cubeMapShader->id, shader_id);

@@ -2,8 +2,7 @@
 
 Game::Game(void) {
   _camera =
-      new Camera(glm::vec3(0.0f, 125.0f, 1.0f), glm::vec3(0.0f, 125.0f, 0.0f));
-  faceRenderAttrib.vaos.push_back(new VAO({{0.0f, 0.0f, 0.0f}}));
+      new Camera(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 }
 
 Game::Game(Game const& src) { *this = src; }
@@ -32,7 +31,7 @@ void Game::render(const Env& env, Renderer& renderer) {
   renderer.uniforms.view = _camera->view;
   renderer.uniforms.proj = _camera->proj;
   renderer.uniforms.view_proj = _camera->proj * _camera->view;
-  renderer.addRenderAttrib(faceRenderAttrib);
+
   renderer.draw();
   renderer.flush();
   if (_debugMode) {
