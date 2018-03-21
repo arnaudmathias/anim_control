@@ -12,16 +12,20 @@ VAO::VAO(const std::vector<Vertex> &vertices) {
   glBindVertexArray(this->vao);
 
   glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (GLvoid *)offsetof(Vertex, position));
-  /*glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                        (GLvoid *)offsetof(Vertex, attribs));*/
+  glVertexAttribIPointer(1, 4, GL_INT, sizeof(Vertex),
+                         (GLvoid *)offsetof(Vertex, bone_ids));
+  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (GLvoid *)offsetof(Vertex, weights));
   glEnableVertexAttribArray(0);
-  // glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
 }
 
 VAO::VAO(const std::vector<Vertex> &vertices,
          const std::vector<unsigned int> &indices) {
+  GL_DUMP_ERROR("vao start");
   initialize();
   this->vertices_size = vertices.size();
   this->indices_size = indices.size();
@@ -39,14 +43,16 @@ VAO::VAO(const std::vector<Vertex> &vertices,
   glGenVertexArrays(1, &this->vao);
   glBindVertexArray(this->vao);
 
-  glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->_ebo);
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (GLvoid *)offsetof(Vertex, position));
-  /*glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                        (GLvoid *)offsetof(Vertex, attribs));*/
+  glVertexAttribIPointer(1, 4, GL_INT, sizeof(Vertex),
+                         (GLvoid *)offsetof(Vertex, bone_ids));
+  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (GLvoid *)offsetof(Vertex, weights));
   glEnableVertexAttribArray(0);
-  // glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
+  GL_DUMP_ERROR("vao end");
 }
 
 VAO::VAO(const std::vector<glm::vec3> &positions) {
