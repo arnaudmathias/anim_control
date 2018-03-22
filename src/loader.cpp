@@ -9,7 +9,7 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
 Mesh::Mesh(Mesh const& src) { *this = src; }
 
 Mesh::~Mesh(void) {
-  for (auto & vao : renderAttrib.vaos) {
+  for (auto& vao : renderAttrib.vaos) {
     delete vao;
   }
 }
@@ -67,7 +67,7 @@ Model* MeshLoader::loadScene(std::string filename) {
   current_model = model;
   Assimp::Importer importer;
   const aiScene* scene = importer.ReadFile(
-      filename, aiProcess_Triangulate | /*aiProcess_JoinIdenticalVertices |*/
+      filename, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
                     aiProcess_FlipUVs);
   if (scene) {
     std::cout << "scene num anim:" << scene->mNumAnimations << std::endl;
@@ -90,6 +90,9 @@ Model* MeshLoader::loadScene(std::string filename) {
 Mesh* MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
   std::vector<Vertex> vertices;
   std::vector<unsigned int> indices;
+  if (mesh->HasBones()) {
+    loadBones(scene, mesh);
+  }
 
   for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
     Vertex vertex = {};
@@ -111,9 +114,20 @@ Mesh* MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
   return (load_mesh);
 }
 
-void MeshLoader::loadBones(const aiMesh* mesh, unsigned int mesh_index) {
+void MeshLoader::loadBones(const aiScene* scene, const aiMesh* mesh) {
   for (unsigned int i = 0; i < mesh->mNumBones; i++) {
-    unsigned int bone_index = 0;
+    unsigned int bone_index;
+    std::string bone_name = std::string(mesh->mBones[i]->mName.C_Str());
+    std::cout << "bone_name: " << bone_name << std::endl;
+    auto bone_it = bone_map.find(bone_name);
+    if (bone_it == bone_map.end()) {
+      bone_index = bones_info.size();
+      struct BoneInfo bone_info = {};
+      bones_info.push_back(bone_info);
+      bone_map[bone_name] = bone_index;
+    } else {
+      bone_index = bone_it->second;
+    }
   }
 }
 

@@ -16,7 +16,6 @@ int main(int argc, char **argv) {
   MeshLoader loader;
   GL_DUMP_ERROR("renderer init");
   Model *model = loader.loadScene("anims/Jumping.dae");
-  Model *model2 = loader.loadScene("anims/Jumping.dae");
   Game game;
   bool wireframe = false;
   while (!glfwWindowShouldClose(env.window)) {

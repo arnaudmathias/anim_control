@@ -3,6 +3,7 @@
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
 #include <iostream>
+#include <unordered_map>
 #include <vector>
 #include "anim.hpp"
 #include "renderer.hpp"
@@ -25,6 +26,10 @@ struct Model {
   ~Model();
 };
 
+struct BoneInfo {
+  float offset;
+};
+
 class MeshLoader {
  public:
   MeshLoader(void);
@@ -35,8 +40,10 @@ class MeshLoader {
 
  private:
   Model* current_model;
+  std::unordered_map<std::string, unsigned int> bone_map;
+  std::vector<BoneInfo> bones_info;
   void processNode(const aiScene* scene, aiNode* node);
   Mesh* processMesh(const aiScene* scene, const aiMesh* mesh);
-  void loadBones(const aiMesh* mesh, unsigned int mesh_index);
+  void loadBones(const aiScene* scene, const aiMesh* mesh);
   void reset();
 };
