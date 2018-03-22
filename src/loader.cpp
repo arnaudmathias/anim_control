@@ -8,7 +8,11 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
 
 Mesh::Mesh(Mesh const& src) { *this = src; }
 
-Mesh::~Mesh(void) {}
+Mesh::~Mesh(void) {
+  for (auto & vao : renderAttrib.vaos) {
+    delete vao;
+  }
+}
 
 Mesh& Mesh::operator=(Mesh const& rhs) {
   if (this != &rhs) {

@@ -14,8 +14,9 @@ int main(int argc, char **argv) {
        "textures/skybox_up.png", "textures/skybox_bottom.png",
        "textures/skybox_side.png", "textures/skybox_side.png"});
   MeshLoader loader;
+  GL_DUMP_ERROR("renderer init");
   Model *model = loader.loadScene("anims/Jumping.dae");
-  // Model *model2 = loader.loadScene("anims/Jumping.dae");
+  Model *model2 = loader.loadScene("anims/Jumping.dae");
   Game game;
   bool wireframe = false;
   while (!glfwWindowShouldClose(env.window)) {
@@ -42,5 +43,6 @@ int main(int argc, char **argv) {
       env.toggleFullscreen();
     }
   }
+  delete model;
   return (EXIT_SUCCESS);
 }

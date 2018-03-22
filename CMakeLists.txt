@@ -27,20 +27,24 @@ include_directories(${OPENGL_INCLUDE_DIR})
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 set(SOURCE_FILES
-        src/main.cpp
-        src/env.cpp
-        src/game.cpp
-        src/shader.cpp
-        src/renderer.cpp
-        src/camera.cpp
-        src/vao.cpp
-        src/texture.cpp
-        src/culling.cpp
-        src/io.cpp
-        src/loader.cpp
-        third-party/glad/glad.c)
+  src/main.cpp
+  src/env.cpp
+  src/game.cpp
+  src/shader.cpp
+  src/renderer.cpp
+  src/camera.cpp
+  src/vao.cpp
+  src/texture.cpp
+  src/culling.cpp
+  src/io.cpp
+  src/loader.cpp
+  third-party/glad/glad.c)
 
 add_executable(anim_control ${SOURCE_FILES})
 
+
+if(CMAKE_DL_LIBS)
+  target_link_libraries(anim_control ${CMAKE_DL_LIBS})
+endif()
 target_link_libraries(anim_control assimp)
 target_link_libraries(anim_control glfw ${GLFW_LIBRARIES})

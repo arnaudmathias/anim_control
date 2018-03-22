@@ -12,6 +12,7 @@ VAO::VAO(const std::vector<Vertex> &vertices) {
   glBindVertexArray(this->vao);
 
   glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
+
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (GLvoid *)offsetof(Vertex, position));
   glVertexAttribIPointer(1, 4, GL_INT, sizeof(Vertex),
@@ -21,6 +22,7 @@ VAO::VAO(const std::vector<Vertex> &vertices) {
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
+  glBindVertexArray(0);
 }
 
 VAO::VAO(const std::vector<Vertex> &vertices,
@@ -43,6 +45,9 @@ VAO::VAO(const std::vector<Vertex> &vertices,
   glGenVertexArrays(1, &this->vao);
   glBindVertexArray(this->vao);
 
+  glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->_ebo);
+
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (GLvoid *)offsetof(Vertex, position));
   glVertexAttribIPointer(1, 4, GL_INT, sizeof(Vertex),
@@ -52,6 +57,7 @@ VAO::VAO(const std::vector<Vertex> &vertices,
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
+  glBindVertexArray(0);
   GL_DUMP_ERROR("vao end");
 }
 
