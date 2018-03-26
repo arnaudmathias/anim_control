@@ -18,7 +18,7 @@ struct AnimChannel {
 
 class Animation {
  public:
-  Animation(std::string anim_name);
+  Animation(std::string anim_name, double duration, double ticks_per_second);
   Animation(Animation const& src);
   ~Animation(void);
   Animation& operator=(Animation const& rhs);
@@ -28,7 +28,8 @@ class Animation {
 
  private:
   Animation(void) = default;
-  double _ticks_per_second;
-  double _durations;  // in ticks
+
   std::string _name;
+  double _duration;  // in ticks
+  double _ticks_per_second;
 };

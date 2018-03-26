@@ -1,8 +1,45 @@
 #include "loader.hpp"
 
+Skeleton::Skeleton(unsigned short joint_count) : _joint_count(joint_count) {
+  _hierarchy = new unsigned short[_joint_count];
+  _local_poses = new glm::mat4[_joint_count];
+  _global_poses = new glm::mat4[_joint_count];
+}
+
+Skeleton::Skeleton(Skeleton const& src) { *this = src; }
+
+Skeleton::~Skeleton(void) {
+  delete[] _hierarchy;
+  delete[] _local_poses;
+  delete[] _global_poses;
+}
+
+Skeleton& Skeleton::operator=(Skeleton const& rhs) {
+  if (this != &rhs) {
+    _joint_count = rhs._joint_count;
+    _hierarchy = new unsigned short[_joint_count];
+    _local_poses = new glm::mat4[_joint_count];
+    _global_poses = new glm::mat4[_joint_count];
+    std::memcpy(_hierarchy, rhs._hierarchy, sizeof(*_hierarchy));
+    std::memcpy(_local_poses, rhs._local_poses, sizeof(*_local_poses));
+    std::memcpy(_global_poses, rhs._global_poses, sizeof(*_global_poses));
+  }
+  return (*this);
+}
+
+void Skeleton::local_to_global() {
+  _global_poses[0] = _local_poses[0];
+  for (unsigned short i = 1; i < _joint_count; i++) {
+    const unsigned short parent_joint = _hierarchy[i];
+    _global_poses[i] = _global_poses[parent_joint] * _local_poses[i];
+  }
+}
+
 Mesh::Mesh(void) {}
 
-Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
+Mesh::Mesh(std::string key, std::vector<Vertex>& vertices,
+           std::vector<unsigned int>& indices)
+    : key(key) {
   renderAttrib.vaos.push_back(new VAO(vertices, indices));
 }
 
@@ -16,8 +53,36 @@ Mesh::~Mesh(void) {
 
 Mesh& Mesh::operator=(Mesh const& rhs) {
   if (this != &rhs) {
+    key = rhs.key;
   }
   return (*this);
+}
+
+Model::Model(Model const& rhs) { *this = rhs; }
+
+Model& Model::operator=(Model const& rhs) {
+  if (this != &rhs) {
+    for (auto& mesh : rhs.meshes) {
+      meshes.push_back(new Mesh(*mesh));
+    }
+    for (auto& anim : rhs.animations) {
+      animations.emplace(anim.first, new Animation(*anim.second));
+    }
+    skeleton = rhs.skeleton != nullptr ? new Skeleton(*rhs.skeleton) : nullptr;
+  }
+  return (*this);
+}
+
+Model::~Model(void) {
+  for (auto& mesh : meshes) {
+    delete mesh;
+  }
+  for (auto it = animations.begin(); it != animations.end(); it++) {
+    delete it->second;
+  }
+  if (skeleton != nullptr) {
+    delete skeleton;
+  }
 }
 
 void Model::pushRenderAttribs(Renderer& renderer) {
@@ -26,11 +91,7 @@ void Model::pushRenderAttribs(Renderer& renderer) {
   }
 }
 
-Model::~Model(void) {
-  for (auto& mesh : meshes) {
-    delete mesh;
-  }
-}
+void Model::animate(float time_in_seconds) {}
 
 MeshLoader::MeshLoader(void) {}
 
@@ -61,6 +122,17 @@ void MeshLoader::processNode(const aiScene* scene, aiNode* node) {
   }
 }
 
+void MeshLoader::processHierarchy(const aiScene* scene, aiNode* node,
+                                  unsigned short parent_id,
+                                  std::vector<unsigned short>& hierarchy) {
+  // flatten skeleton hierarchy by DFS traversal
+  unsigned short id = hierarchy.size();
+  hierarchy.push_back(parent_id);
+  for (unsigned int i = 0; i < node->mNumChildren; i++) {
+    processHierarchy(scene, node->mChildren[i], id, hierarchy);
+  }
+}
+
 Model* MeshLoader::loadScene(std::string filename) {
   reset();
   Model* model = new Model;
@@ -71,10 +143,12 @@ Model* MeshLoader::loadScene(std::string filename) {
                     aiProcess_FlipUVs);
   if (scene) {
     std::cout << "scene num anim:" << scene->mNumAnimations << std::endl;
+    std::cout << "scene num mesh:" << scene->mNumMeshes << std::endl;
     glm::mat4 globalInverse = to_glm(scene->mRootNode->mTransformation);
     globalInverse = glm::inverse(globalInverse);
 
     processNode(scene, scene->mRootNode);
+    std::cout << "models: " << current_model->meshes.size() << std::endl;
 
     std::vector<VertexBoneData> bones;
 
@@ -82,6 +156,15 @@ Model* MeshLoader::loadScene(std::string filename) {
     std::cout << "Can't load " << filename << std::endl;
   }
   if (scene->HasAnimations()) {
+    std::vector<unsigned short> hierarchy;
+    processHierarchy(scene, scene->mRootNode, 0, hierarchy);
+    std::cout << "hierarchy: " << hierarchy.size() << std::endl;
+
+    current_model->skeleton = new Skeleton(hierarchy.size());
+    for (unsigned int i = 0; i < hierarchy.size(); i++) {
+      // std::cout << "hierarchy[" << i << "] " << hierarchy[i] << std::endl;
+      current_model->skeleton->_hierarchy[i] = hierarchy[i];
+    }
     loadAnimations(scene);
   }
   current_model = nullptr;
@@ -93,6 +176,7 @@ Model* MeshLoader::loadScene(std::string filename) {
 Mesh* MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
   std::vector<Vertex> vertices;
   std::vector<unsigned int> indices;
+  std::string mesh_name = std::string(mesh->mName.C_Str());
   if (mesh->HasBones()) {
     loadBones(scene, mesh);
   }
@@ -113,7 +197,7 @@ Mesh* MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
   }
   std::cout << "vertices: " << vertices.size() << std::endl;
   std::cout << "indices: " << indices.size() << std::endl;
-  Mesh* load_mesh = new Mesh(vertices, indices);
+  Mesh* load_mesh = new Mesh(mesh_name, vertices, indices);
   return (load_mesh);
 }
 
@@ -124,13 +208,14 @@ void MeshLoader::loadAnimations(const aiScene* scene) {
     if (anim_name.empty()) {
       anim_name = std::to_string(i);
     }
-    Animation* animation = new Animation(anim_name);
+    Animation* animation =
+        new Animation(anim_name, anim->mDuration, anim->mTicksPerSecond);
     std::cout << "animations_name: " << anim_name << std::endl;
     for (unsigned int j = 0; j < anim->mNumChannels; j++) {
       AnimChannel channel;
       const aiNodeAnim* node_anim = anim->mChannels[j];
       const std::string channel_key = std::string(node_anim->mNodeName.C_Str());
-      std::cout << "node key: " << channel_key << std::endl;
+      // std::cout << "node key: " << channel_key << std::endl;
 
       // Copy positions
       for (unsigned k = 0; k < node_anim->mNumPositionKeys; k++) {
@@ -169,10 +254,11 @@ void MeshLoader::loadAnimations(const aiScene* scene) {
 void MeshLoader::loadBones(const aiScene* scene, const aiMesh* mesh) {
   std::vector<VertexBoneData> bones;
   bones.resize(mesh->mNumVertices);
+  std::cout << "mesh->mNumBones: " << mesh->mNumBones << std::endl;
   for (unsigned int i = 0; i < mesh->mNumBones; i++) {
     unsigned int bone_index;
     std::string bone_name = std::string(mesh->mBones[i]->mName.C_Str());
-    std::cout << "bone_name: " << bone_name << std::endl;
+    // std::cout << "bone_name: " << bone_name << std::endl;
     auto bone_it = bone_map.find(bone_name);
     if (bone_it == bone_map.end()) {
       bone_index = bones_info.size();
@@ -180,7 +266,7 @@ void MeshLoader::loadBones(const aiScene* scene, const aiMesh* mesh) {
       bones_info.push_back(bone_info);
       bone_map[bone_name] = bone_index;
     } else {
-      std::cout << "bone_name already loaded" << std::endl;
+      // std::cout << "bone_name already loaded" << std::endl;
       bone_index = bone_it->second;
     }
     bones_info[bone_index].offset = to_glm(mesh->mBones[i]->mOffsetMatrix);
@@ -190,6 +276,7 @@ void MeshLoader::loadBones(const aiScene* scene, const aiMesh* mesh) {
       bones[vertex_id] = getBoneData(bone_index, weight);
     }
   }
+  std::cout << "bones count: " << bone_map.size() << std::endl;
 }
 
 VertexBoneData MeshLoader::getBoneData(unsigned int bone_id, float weight) {
