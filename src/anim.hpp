@@ -1,12 +1,14 @@
 #pragma once
 #define GLM_ENABLE_EXPERIMENTAL
-#define NUM_BONES_PER_VERTEX 4
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/color_space.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/transform.hpp>
+#include <iomanip>
+#include <iostream>
 
 struct VertexBoneData {
   glm::ivec4 bone_ids = {0, 0, 0, 0};
@@ -30,3 +32,29 @@ struct Vertex {
     return (*this);
   };
 };
+
+static std::ostream& operator<<(std::ostream& o, glm::vec3 const& v) {
+  o << v.x << "|" << v.y << "|" << v.z;
+  return (o);
+}
+
+static std::ostream& operator<<(std::ostream& o, glm::vec4 const& v) {
+  o << v.x << "|" << v.y << "|" << v.z << "|" << v.w;
+  return (o);
+}
+
+static std::ostream& operator<<(std::ostream& o, glm::quat const& v) {
+  o << v.x << "|" << v.y << "|" << v.z << "|" << v.w;
+  return (o);
+}
+
+static std::ostream& operator<<(std::ostream& o, glm::mat4 const& v) {
+  for (unsigned int i = 0; i < 16; i++) {
+    o << v[i] << " ";
+    if ((i + 1) % 4 == 0) {
+      o << std::endl;
+    }
+  }
+  o << std::endl;
+  return (o);
+}

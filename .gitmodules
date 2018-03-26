@@ -7,3 +7,4 @@
 [submodule "third-party/assimp"]
 	path = third-party/assimp
 	url = https://github.com/assimp/assimp.git
+	ignore = dirty

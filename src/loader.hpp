@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 #include "anim.hpp"
+#include "animation.hpp"
 #include "renderer.hpp"
 
 class Mesh {
@@ -23,6 +24,7 @@ class Mesh {
 struct Model {
   std::vector<Mesh*> meshes;
   void pushRenderAttribs(Renderer& renderer);
+  std::unordered_map<std::string, Animation*> animations;
   ~Model();
 };
 
@@ -44,6 +46,7 @@ class MeshLoader {
   std::vector<BoneInfo> bones_info;
   void processNode(const aiScene* scene, aiNode* node);
   Mesh* processMesh(const aiScene* scene, const aiMesh* mesh);
+  void loadAnimations(const aiScene* scene);
   void loadBones(const aiScene* scene, const aiMesh* mesh);
   VertexBoneData getBoneData(unsigned int bone_id, float weight);
   void reset();

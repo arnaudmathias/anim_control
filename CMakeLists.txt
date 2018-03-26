@@ -39,6 +39,7 @@ set(SOURCE_FILES
   src/culling.cpp
   src/io.cpp
   src/loader.cpp
+  src/animation.cpp
   third-party/glad/glad.c)
 
 add_executable(anim_control ${SOURCE_FILES})
