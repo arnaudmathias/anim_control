@@ -9,8 +9,8 @@
 #include <glm/gtx/transform.hpp>
 
 struct VertexBoneData {
-  unsigned int ids[NUM_BONES_PER_VERTEX];
-  float weights[NUM_BONES_PER_VERTEX];
+  glm::ivec4 bone_ids = {0, 0, 0, 0};
+  glm::vec4 weights = {0, 0, 0, 0};
 };
 
 struct Vertex {

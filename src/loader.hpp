@@ -27,7 +27,7 @@ struct Model {
 };
 
 struct BoneInfo {
-  float offset;
+  glm::mat4 offset;
 };
 
 class MeshLoader {
@@ -45,5 +45,6 @@ class MeshLoader {
   void processNode(const aiScene* scene, aiNode* node);
   Mesh* processMesh(const aiScene* scene, const aiMesh* mesh);
   void loadBones(const aiScene* scene, const aiMesh* mesh);
+  VertexBoneData getBoneData(unsigned int bone_id, float weight);
   void reset();
 };
