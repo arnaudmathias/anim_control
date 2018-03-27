@@ -151,21 +151,21 @@ Model* MeshLoader::loadScene(std::string filename) {
     std::cout << "models: " << current_model->meshes.size() << std::endl;
 
     std::vector<VertexBoneData> bones;
+    if (scene->HasAnimations()) {
+      std::vector<unsigned short> hierarchy;
+      processHierarchy(scene, scene->mRootNode, 0, hierarchy);
+      std::cout << "hierarchy: " << hierarchy.size() << std::endl;
+
+      current_model->skeleton = new Skeleton(hierarchy.size());
+      for (unsigned int i = 0; i < hierarchy.size(); i++) {
+        // std::cout << "hierarchy[" << i << "] " << hierarchy[i] << std::endl;
+        current_model->skeleton->_hierarchy[i] = hierarchy[i];
+      }
+      loadAnimations(scene);
+    }
 
   } else {
     std::cout << "Can't load " << filename << std::endl;
-  }
-  if (scene->HasAnimations()) {
-    std::vector<unsigned short> hierarchy;
-    processHierarchy(scene, scene->mRootNode, 0, hierarchy);
-    std::cout << "hierarchy: " << hierarchy.size() << std::endl;
-
-    current_model->skeleton = new Skeleton(hierarchy.size());
-    for (unsigned int i = 0; i < hierarchy.size(); i++) {
-      // std::cout << "hierarchy[" << i << "] " << hierarchy[i] << std::endl;
-      current_model->skeleton->_hierarchy[i] = hierarchy[i];
-    }
-    loadAnimations(scene);
   }
   current_model = nullptr;
   std::cout << "model: " << model->meshes.size() << std::endl;
@@ -270,7 +270,7 @@ void MeshLoader::loadBones(const aiScene* scene, const aiMesh* mesh) {
       bone_index = bone_it->second;
     }
     bones_info[bone_index].offset = to_glm(mesh->mBones[i]->mOffsetMatrix);
-    for (uint j = 0; j < mesh->mBones[i]->mNumWeights; j++) {
+    for (unsigned int j = 0; j < mesh->mBones[i]->mNumWeights; j++) {
       unsigned int vertex_id = mesh->mBones[i]->mWeights[j].mVertexId;
       float weight = mesh->mBones[i]->mWeights[j].mWeight;
       bones[vertex_id] = getBoneData(bone_index, weight);

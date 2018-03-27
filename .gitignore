@@ -51,6 +51,7 @@ anim_control
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+[Rr]elWithDebInfo/
 x64/
 x86/
 bld/
