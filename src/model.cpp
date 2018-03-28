@@ -83,7 +83,8 @@ void Model::animate(float timestamp) {
       std::string node_name = node_it.first;
       unsigned short bone_index = node_it.second;
       skeleton->_local_poses[bone_index] =
-          skeleton->_offsets[bone_index] * anim->animate(node_name, timestamp);
+          /*skeleton->_offsets[bone_index] */ anim->animate(node_name,
+                                                            timestamp);
     }
   }
   skeleton->local_to_global();

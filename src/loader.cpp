@@ -23,15 +23,16 @@ glm::mat4 to_glm(aiMatrix4x4t<float> aimat) {
 }
 
 void MeshLoader::parseNodeHierarchy(const aiScene* scene, aiNode* node,
-                                    unsigned short node_id) {
+                                    std::queue<unsigned short>& node_stack) {
   // Bind each node to an ID during DFS traversal
-  node_map.emplace(std::string(node->mName.C_Str()), node_id);
+  node_map.emplace(std::string(node->mName.C_Str()), node_stack.size());
+  node_stack.push(node_stack.size());
   for (unsigned int i = 0; i < node->mNumMeshes; i++) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
     processMesh(scene, mesh);
   }
   for (unsigned int i = 0; i < node->mNumChildren; i++) {
-    parseNodeHierarchy(scene, node->mChildren[i], node_id++);
+    parseNodeHierarchy(scene, node->mChildren[i], node_stack);
   }
 }
 
@@ -73,7 +74,7 @@ Model* MeshLoader::loadScene(std::string filename) {
     globalInverse = glm::inverse(globalInverse);
 
     parseBoneHierarchy(scene, scene->mRootNode);
-    parseNodeHierarchy(scene, scene->mRootNode, 0);
+    parseNodeHierarchy(scene, scene->mRootNode, std::queue<unsigned short>());
     current_model->node_ids = node_map;
 
     std::vector<VertexBoneData> bones;
@@ -150,7 +151,7 @@ void MeshLoader::populateVerticesBoneInfo(const aiMesh* mesh,
       }
       unsigned int vertex_id = mesh->mBones[i]->mWeights[j].mVertexId;
       float weight = mesh->mBones[i]->mWeights[j].mWeight;
-      setBoneData(vertices[vertex_id], 0, weight);
+      setBoneData(vertices[vertex_id], node_index, weight);
     }
   }
 }

@@ -4,6 +4,7 @@
 #include <assimp/Importer.hpp>
 #include <cstring>
 #include <iostream>
+#include <queue>
 #include <unordered_map>
 #include <vector>
 #include "anim.hpp"
@@ -28,13 +29,11 @@ class MeshLoader {
   std::unordered_map<std::string, BoneInfo> bone_map;
   std::unordered_map<std::string, unsigned short> node_map;
 
-  void processChild(const aiScene* scene, const aiMesh* mesh,
-                    unsigned int mesh_id);
   void processHierarchy(const aiScene* scene, aiNode* node,
                         unsigned short parent_id,
                         std::vector<unsigned short>& hierarchy);
   void parseNodeHierarchy(const aiScene* scene, aiNode* node,
-                          unsigned short node_id);
+                          std::queue<unsigned short>& node_stack);
   void parseBoneHierarchy(const aiScene* scene, aiNode* node);
   void processMesh(const aiScene* scene, const aiMesh* mesh);
   void loadAnimations(const aiScene* scene);
