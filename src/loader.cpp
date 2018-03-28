@@ -16,7 +16,7 @@ glm::mat4 to_glm(aiMatrix4x4t<float> aimat) {
   glm::mat4 mat(0.0f);
   float* mat_array = glm::value_ptr(mat);
   for (unsigned int i = 0; i < 16; i++) {
-    mat_array[i] = *aimat[i];
+    mat_array[i] = aimat[i / 4][i % 4];
   }
   mat = glm::transpose(mat);
   return (mat);
