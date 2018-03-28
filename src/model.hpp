@@ -30,11 +30,13 @@ struct Model {
 
   void update(float timestamp);
   void pushRenderAttribs(Renderer& renderer);
+
   std::unordered_map<std::string, Animation*> animations;
   std::unordered_map<std::string, unsigned short> node_ids;
   std::vector<glm::mat4> transforms;
   RenderAttrib renderAttrib;
   Skeleton* skeleton = nullptr;
+  glm::mat4 global_inverse;
 
  private:
   void animate(float time_in_second);

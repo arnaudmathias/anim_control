@@ -70,8 +70,9 @@ Model* MeshLoader::loadScene(std::string filename) {
   if (scene) {
     std::cout << "scene num anim:" << scene->mNumAnimations << std::endl;
     std::cout << "scene num mesh:" << scene->mNumMeshes << std::endl;
-    glm::mat4 globalInverse = to_glm(scene->mRootNode->mTransformation);
-    globalInverse = glm::inverse(globalInverse);
+
+    current_model->global_inverse =
+        glm::inverse(to_glm(scene->mRootNode->mTransformation));
 
     parseBoneHierarchy(scene, scene->mRootNode);
     parseNodeHierarchy(scene, scene->mRootNode, std::queue<unsigned short>());
@@ -79,15 +80,7 @@ Model* MeshLoader::loadScene(std::string filename) {
 
     std::vector<VertexBoneData> bones;
     if (scene->HasAnimations()) {
-      std::vector<unsigned short> hierarchy;
-      processHierarchy(scene, scene->mRootNode, 0, hierarchy);
-      std::cout << "hierarchy: " << hierarchy.size() << std::endl;
-
-      current_model->skeleton = new Skeleton(hierarchy.size());
-      for (unsigned int i = 0; i < hierarchy.size(); i++) {
-        // std::cout << "hierarchy[" << i << "] " << hierarchy[i] << std::endl;
-        current_model->skeleton->_hierarchy[i] = hierarchy[i];
-      }
+      setupSkeleton(scene);
       loadAnimations(scene);
     }
 
@@ -214,6 +207,28 @@ void MeshLoader::loadAnimations(const aiScene* scene) {
       animation->addChannel(channel_key, channel);
     }
     current_model->animations.emplace(anim_name, animation);
+  }
+}
+
+void MeshLoader::setupSkeleton(const aiScene* scene) {
+  std::vector<unsigned short> hierarchy;
+  processHierarchy(scene, scene->mRootNode, 0, hierarchy);
+  std::cout << "hierarchy: " << hierarchy.size() << std::endl;
+
+  current_model->skeleton = new Skeleton(hierarchy.size());
+  for (unsigned int i = 0; i < hierarchy.size(); i++) {
+    current_model->skeleton->_hierarchy[i] = hierarchy[i];
+  }
+  // Populate skeleton with bone offset
+  for (auto node_it : node_map) {
+    std::string node_name = node_it.first;
+    unsigned short node_index = node_it.second;
+    auto bone_it = bone_map.find(node_name);
+    if (bone_it != bone_map.end()) {
+      current_model->skeleton->_offsets[node_index] = bone_it->second.offset;
+    } else {
+      std::cout << "Can't find bone " << node_name << std::endl;
+    }
   }
 }
 

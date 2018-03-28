@@ -41,5 +41,6 @@ class MeshLoader {
   void populateVerticesBoneInfo(const aiMesh* mesh,
                                 std::vector<Vertex>& vertices);
   void setBoneData(Vertex& vertex, unsigned int bone_id, float weight);
+  void setupSkeleton(const aiScene* scene);
   void reset();
 };
