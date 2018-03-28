@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
     game.update(env);
     renderer.update(env);
     renderer.clearScreen();
+    model->update(env.getAbsoluteTime());
     model->pushRenderAttribs(renderer);
     game.render(env, renderer);
     glfwSwapBuffers(env.window);

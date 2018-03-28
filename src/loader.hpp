@@ -27,6 +27,7 @@ class MeshLoader {
   Model* current_model;
   std::unordered_map<std::string, BoneInfo> bone_map;
   std::unordered_map<std::string, unsigned short> node_map;
+
   void processChild(const aiScene* scene, const aiMesh* mesh,
                     unsigned int mesh_id);
   void processHierarchy(const aiScene* scene, aiNode* node,

@@ -6,6 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/color_space.hpp>
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/transform.hpp>
 #include <iomanip>
 #include <iostream>
@@ -34,27 +35,21 @@ struct Vertex {
 };
 
 static std::ostream& operator<<(std::ostream& o, glm::vec3 const& v) {
-  o << v.x << "|" << v.y << "|" << v.z;
+  o << glm::to_string(v) << std::endl;
   return (o);
 }
 
 static std::ostream& operator<<(std::ostream& o, glm::vec4 const& v) {
-  o << v.x << "|" << v.y << "|" << v.z << "|" << v.w;
+  o << glm::to_string(v) << std::endl;
   return (o);
 }
 
 static std::ostream& operator<<(std::ostream& o, glm::quat const& v) {
-  o << v.x << "|" << v.y << "|" << v.z << "|" << v.w;
+  o << glm::to_string(v) << std::endl;
   return (o);
 }
 
 static std::ostream& operator<<(std::ostream& o, glm::mat4 const& v) {
-  for (unsigned int i = 0; i < 16; i++) {
-    o << v[i] << " ";
-    if ((i + 1) % 4 == 0) {
-      o << std::endl;
-    }
-  }
-  o << std::endl;
+  o << glm::to_string(v) << std::endl;
   return (o);
 }

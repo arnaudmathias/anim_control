@@ -28,8 +28,10 @@ struct Model {
   Model& operator=(Model const& rhs);
   ~Model();
 
+  void update(float timestamp);
   void pushRenderAttribs(Renderer& renderer);
   std::unordered_map<std::string, Animation*> animations;
+  std::unordered_map<std::string, unsigned short> node_ids;
   std::vector<glm::mat4> transforms;
   RenderAttrib renderAttrib;
   Skeleton* skeleton = nullptr;

@@ -13,14 +13,18 @@ MeshLoader& MeshLoader::operator=(MeshLoader const& rhs) {
 }
 
 glm::mat4 to_glm(aiMatrix4x4t<float> aimat) {
-  glm::mat4 mat;
-  std::memcpy(glm::value_ptr(mat), &aimat.a1, sizeof(aimat));
+  glm::mat4 mat(0.0f);
+  float* mat_array = glm::value_ptr(mat);
+  for (unsigned int i = 0; i < 16; i++) {
+    mat_array[i] = *aimat[i];
+  }
   mat = glm::transpose(mat);
   return (mat);
 }
 
 void MeshLoader::parseNodeHierarchy(const aiScene* scene, aiNode* node,
                                     unsigned short node_id) {
+  // Bind each node to an ID during DFS traversal
   node_map.emplace(std::string(node->mName.C_Str()), node_id);
   for (unsigned int i = 0; i < node->mNumMeshes; i++) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
@@ -70,6 +74,7 @@ Model* MeshLoader::loadScene(std::string filename) {
 
     parseBoneHierarchy(scene, scene->mRootNode);
     parseNodeHierarchy(scene, scene->mRootNode, 0);
+    current_model->node_ids = node_map;
 
     std::vector<VertexBoneData> bones;
     if (scene->HasAnimations()) {
@@ -119,8 +124,6 @@ void MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
 }
 
 void MeshLoader::loadMeshBones(const aiMesh* mesh) {
-  std::vector<VertexBoneData> bones(mesh->mNumVertices);
-  std::cout << "mesh->mNumBones: " << mesh->mNumBones << std::endl;
   for (unsigned int i = 0; i < mesh->mNumBones; i++) {
     std::string bone_name = std::string(mesh->mBones[i]->mName.C_Str());
     // std::cout << "bone_name: " << bone_name << std::endl;
@@ -131,7 +134,6 @@ void MeshLoader::loadMeshBones(const aiMesh* mesh) {
     }
     bone_it->second.offset = to_glm(mesh->mBones[i]->mOffsetMatrix);
   }
-  std::cout << "bones count: " << bone_map.size() << std::endl;
 }
 
 void MeshLoader::populateVerticesBoneInfo(const aiMesh* mesh,
