@@ -8,8 +8,8 @@
 #include <vector>
 #include "anim.hpp"
 #include "animation.hpp"
-#include "renderer.hpp"
 #include "model.hpp"
+#include "renderer.hpp"
 
 struct BoneInfo {
   glm::mat4 offset;
@@ -25,17 +25,21 @@ class MeshLoader {
 
  private:
   Model* current_model;
-  std::unordered_map<std::string, unsigned int> bone_map;
-  std::vector<BoneInfo> bones_info;
+  std::unordered_map<std::string, BoneInfo> bone_map;
+  std::unordered_map<std::string, unsigned short> node_map;
   void processChild(const aiScene* scene, const aiMesh* mesh,
                     unsigned int mesh_id);
   void processHierarchy(const aiScene* scene, aiNode* node,
                         unsigned short parent_id,
                         std::vector<unsigned short>& hierarchy);
-  void processNode(const aiScene* scene, aiNode* node);
-  Mesh* processMesh(const aiScene* scene, const aiMesh* mesh);
+  void parseNodeHierarchy(const aiScene* scene, aiNode* node,
+                          unsigned short node_id);
+  void parseBoneHierarchy(const aiScene* scene, aiNode* node);
+  void processMesh(const aiScene* scene, const aiMesh* mesh);
   void loadAnimations(const aiScene* scene);
-  void loadBones(const aiScene* scene, const aiMesh* mesh);
-  VertexBoneData getBoneData(unsigned int bone_id, float weight);
+  void loadMeshBones(const aiMesh* mesh);
+  void populateVerticesBoneInfo(const aiMesh* mesh,
+                                std::vector<Vertex>& vertices);
+  void setBoneData(Vertex& vertex, unsigned int bone_id, float weight);
   void reset();
 };

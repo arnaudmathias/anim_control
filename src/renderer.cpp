@@ -106,6 +106,7 @@ void Renderer::updateUniforms(const RenderAttrib &attrib, const int shader_id) {
     glm::mat4 mvp = uniforms.view_proj * attrib.model;
     setUniform(glGetUniformLocation(shader_id, "MVP"), mvp);
     setUniform(glGetUniformLocation(shader_id, "M"), attrib.model);
+    setUniform(glGetUniformLocation(shader_id, "B"), attrib.bones);
   }
 }
 

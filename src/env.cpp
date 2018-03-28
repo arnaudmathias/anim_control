@@ -38,8 +38,11 @@ Env::Env(unsigned short width, unsigned short height)
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     std::cout << "Failed to initialize OpenGL context" << std::endl;
   }
+  int max_uniform_vec = 0;
+  glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &max_uniform_vec);
   std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
   std::cout << "GLSL " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+  std::cout << "Max uniform vec: " << max_uniform_vec << std::endl;
 
   inputHandler.mouseDisabled = false;
 

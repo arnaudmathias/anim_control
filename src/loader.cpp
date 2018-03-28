@@ -19,13 +19,27 @@ glm::mat4 to_glm(aiMatrix4x4t<float> aimat) {
   return (mat);
 }
 
-void MeshLoader::processNode(const aiScene* scene, aiNode* node) {
+void MeshLoader::parseNodeHierarchy(const aiScene* scene, aiNode* node,
+                                    unsigned short node_id) {
+  node_map.emplace(std::string(node->mName.C_Str()), node_id);
   for (unsigned int i = 0; i < node->mNumMeshes; i++) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-    current_model->meshes.push_back(processMesh(scene, mesh));
+    processMesh(scene, mesh);
   }
   for (unsigned int i = 0; i < node->mNumChildren; i++) {
-    processNode(scene, node->mChildren[i]);
+    parseNodeHierarchy(scene, node->mChildren[i], node_id++);
+  }
+}
+
+void MeshLoader::parseBoneHierarchy(const aiScene* scene, aiNode* node) {
+  for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+    aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+    if (mesh->HasBones()) {
+      loadMeshBones(mesh);
+    }
+  }
+  for (unsigned int i = 0; i < node->mNumChildren; i++) {
+    parseBoneHierarchy(scene, node->mChildren[i]);
   }
 }
 
@@ -54,8 +68,8 @@ Model* MeshLoader::loadScene(std::string filename) {
     glm::mat4 globalInverse = to_glm(scene->mRootNode->mTransformation);
     globalInverse = glm::inverse(globalInverse);
 
-    processNode(scene, scene->mRootNode);
-    std::cout << "models: " << current_model->meshes.size() << std::endl;
+    parseBoneHierarchy(scene, scene->mRootNode);
+    parseNodeHierarchy(scene, scene->mRootNode, 0);
 
     std::vector<VertexBoneData> bones;
     if (scene->HasAnimations()) {
@@ -75,19 +89,14 @@ Model* MeshLoader::loadScene(std::string filename) {
     std::cout << "Can't load " << filename << std::endl;
   }
   current_model = nullptr;
-  std::cout << "model: " << model->meshes.size() << std::endl;
   importer.FreeScene();
   return (model);
 }
 
-Mesh* MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
+void MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
   std::vector<Vertex> vertices;
   std::vector<unsigned int> indices;
   std::string mesh_name = std::string(mesh->mName.C_Str());
-  if (mesh->HasBones()) {
-    loadBones(scene, mesh);
-  }
-
   for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
     Vertex vertex = {};
     vertex.position.x = mesh->mVertices[i].x;
@@ -102,10 +111,57 @@ Mesh* MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
       indices.push_back(face.mIndices[f]);
     }
   }
+  populateVerticesBoneInfo(mesh, vertices);
   std::cout << "vertices: " << vertices.size() << std::endl;
   std::cout << "indices: " << indices.size() << std::endl;
-  Mesh* load_mesh = new Mesh(mesh_name, vertices, indices);
-  return (load_mesh);
+  VAO* vao = new VAO(vertices, indices);
+  current_model->renderAttrib.vaos.push_back(vao);
+}
+
+void MeshLoader::loadMeshBones(const aiMesh* mesh) {
+  std::vector<VertexBoneData> bones(mesh->mNumVertices);
+  std::cout << "mesh->mNumBones: " << mesh->mNumBones << std::endl;
+  for (unsigned int i = 0; i < mesh->mNumBones; i++) {
+    std::string bone_name = std::string(mesh->mBones[i]->mName.C_Str());
+    // std::cout << "bone_name: " << bone_name << std::endl;
+    auto bone_it = bone_map.find(bone_name);
+    if (bone_it == bone_map.end()) {
+      struct BoneInfo bone_info = {};
+      bone_it = bone_map.emplace(bone_name, bone_info).first;
+    }
+    bone_it->second.offset = to_glm(mesh->mBones[i]->mOffsetMatrix);
+  }
+  std::cout << "bones count: " << bone_map.size() << std::endl;
+}
+
+void MeshLoader::populateVerticesBoneInfo(const aiMesh* mesh,
+                                          std::vector<Vertex>& vertices) {
+  for (unsigned int i = 0; i < mesh->mNumBones; i++) {
+    std::string bone_name = std::string(mesh->mBones[i]->mName.C_Str());
+    for (unsigned int j = 0; j < mesh->mBones[i]->mNumWeights; j++) {
+      unsigned int node_index = 0;
+      auto node_it = node_map.find(bone_name);
+      if (node_it != node_map.end()) {
+        node_index = static_cast<unsigned int>(node_it->second);
+      } else {
+        std::cout << "invalid node_index" << std::endl;
+      }
+      unsigned int vertex_id = mesh->mBones[i]->mWeights[j].mVertexId;
+      float weight = mesh->mBones[i]->mWeights[j].mWeight;
+      setBoneData(vertices[vertex_id], 0, weight);
+    }
+  }
+}
+
+void MeshLoader::setBoneData(Vertex& vertex, unsigned int bone_id,
+                             float weight) {
+  for (unsigned int i = 0; i < 4; i++) {
+    if (vertex.weights[i] == 0.0f) {
+      vertex.bone_ids[i] = bone_id;
+      vertex.weights[i] = weight;
+      break;
+    }
+  }
 }
 
 void MeshLoader::loadAnimations(const aiScene* scene) {
@@ -158,44 +214,8 @@ void MeshLoader::loadAnimations(const aiScene* scene) {
   }
 }
 
-void MeshLoader::loadBones(const aiScene* scene, const aiMesh* mesh) {
-  std::vector<VertexBoneData> bones;
-  bones.resize(mesh->mNumVertices);
-  std::cout << "mesh->mNumBones: " << mesh->mNumBones << std::endl;
-  for (unsigned int i = 0; i < mesh->mNumBones; i++) {
-    unsigned int bone_index;
-    std::string bone_name = std::string(mesh->mBones[i]->mName.C_Str());
-    // std::cout << "bone_name: " << bone_name << std::endl;
-    auto bone_it = bone_map.find(bone_name);
-    if (bone_it == bone_map.end()) {
-      bone_index = bones_info.size();
-      struct BoneInfo bone_info = {};
-      bones_info.push_back(bone_info);
-      bone_map[bone_name] = bone_index;
-    } else {
-      // std::cout << "bone_name already loaded" << std::endl;
-      bone_index = bone_it->second;
-    }
-    bones_info[bone_index].offset = to_glm(mesh->mBones[i]->mOffsetMatrix);
-    for (unsigned int j = 0; j < mesh->mBones[i]->mNumWeights; j++) {
-      unsigned int vertex_id = mesh->mBones[i]->mWeights[j].mVertexId;
-      float weight = mesh->mBones[i]->mWeights[j].mWeight;
-      bones[vertex_id] = getBoneData(bone_index, weight);
-    }
-  }
-  std::cout << "bones count: " << bone_map.size() << std::endl;
+void MeshLoader::reset() {
+  current_model = nullptr;
+  bone_map.clear();
+  node_map.clear();
 }
-
-VertexBoneData MeshLoader::getBoneData(unsigned int bone_id, float weight) {
-  VertexBoneData bone_data;
-  for (unsigned int i = 0; i < 4; i++) {
-    if (weight == 0.0f) {
-      bone_data.bone_ids[i] = bone_id;
-      bone_data.weights[i] = weight;
-      break;
-    }
-  }
-  return (bone_data);
-}
-
-void MeshLoader::reset() { current_model = nullptr; }

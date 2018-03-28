@@ -23,6 +23,7 @@ struct Uniforms {
 struct RenderAttrib {
   std::vector<VAO*> vaos;
   glm::mat4 model;
+  std::vector<glm::mat4> bones;
   RenderAttrib(){};
 
   bool operator<(const struct RenderAttrib& rhs) const;
@@ -125,4 +126,11 @@ static inline void setUniform(const GLint& location, const glm::vec4& data) {
 static inline void setUniform(const GLint& location, const glm::mat4& data) {
   glUniformMatrix4fv(location, 1, GL_FALSE,
                      static_cast<const GLfloat*>(glm::value_ptr(data)));
+}
+static inline void setUniform(const GLint& location,
+                              const std::vector<glm::mat4>& data) {
+  if (data.size() > 0) {
+    glUniformMatrix4fv(location, data.size(), GL_FALSE,
+                       static_cast<const GLfloat*>(glm::value_ptr(data[0])));
+  }
 }

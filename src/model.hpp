@@ -1,10 +1,10 @@
 #pragma once
 #include <cstring>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 #include "anim.hpp"
-#include "renderer.hpp"
 #include "animation.hpp"
+#include "renderer.hpp"
 
 class Skeleton {
  public:
@@ -18,21 +18,8 @@ class Skeleton {
   unsigned short* _hierarchy = nullptr;
   glm::mat4* _local_poses = nullptr;
   glm::mat4* _global_poses = nullptr;
+  glm::mat4* _offsets = nullptr;
   unsigned short _joint_count;
-};
-
-class Mesh {
- public:
-  Mesh(std::string key, std::vector<Vertex>& vertices,
-       std::vector<unsigned int>& indices);
-  Mesh(Mesh const& src);
-  ~Mesh(void);
-  Mesh& operator=(Mesh const& rhs);
-  RenderAttrib renderAttrib;
-  std::string key;
-
- private:
-  Mesh(void);
 };
 
 struct Model {
@@ -41,10 +28,10 @@ struct Model {
   Model& operator=(Model const& rhs);
   ~Model();
 
-  std::vector<Mesh*> meshes;
   void pushRenderAttribs(Renderer& renderer);
   std::unordered_map<std::string, Animation*> animations;
   std::vector<glm::mat4> transforms;
+  RenderAttrib renderAttrib;
   Skeleton* skeleton = nullptr;
 
  private:
