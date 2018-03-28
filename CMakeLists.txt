@@ -8,7 +8,7 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 find_package(OpenGL REQUIRED)
 
 if (MSVC)
-	set(USE_MSVC_RUNTIME_LIBRARY_DLL ON)
+  set(USE_MSVC_RUNTIME_LIBRARY_DLL ON)
 endif(MSVC)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -42,6 +42,7 @@ set(SOURCE_FILES
   src/texture.cpp
   src/culling.cpp
   src/io.cpp
+  src/model.cpp
   src/loader.cpp
   src/animation.cpp
   third-party/glad/glad.c)
@@ -49,8 +50,8 @@ set(SOURCE_FILES
 add_executable(anim_control ${SOURCE_FILES})
 
 if (MSVC)
-	set_target_properties(anim_control PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT anim_control)
+  set_target_properties(anim_control PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+  set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT anim_control)
 endif(MSVC)
 
 if(CMAKE_DL_LIBS)
