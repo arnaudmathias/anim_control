@@ -12,6 +12,8 @@
 
 class Shader;
 
+enum class PrimitiveMode { Triangles, Points, Line, LineStrip };
+
 enum class PolygonMode { Point, Line, Fill };
 
 struct Uniforms {
@@ -21,6 +23,7 @@ struct Uniforms {
 };
 
 struct RenderAttrib {
+  enum PrimitiveMode mode = PrimitiveMode::Triangles;
   std::vector<VAO*> vaos;
   glm::mat4 model;
   std::vector<glm::mat4> bones;
@@ -106,6 +109,7 @@ class Renderer {
   std::vector<RenderAttrib> _renderAttribs;
   void switchShader(GLuint shader_id, int& current_shader_id);
   void updateUniforms(const RenderAttrib& attrib, const int shader_id);
+  GLenum getGLRenderMode(enum PrimitiveMode mode);
 };
 
 static inline void setUniform(const GLint& location, const float& data) {

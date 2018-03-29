@@ -119,6 +119,7 @@ void Renderer::draw() {
   switchShader(_shader->id, shader_id);
   for (const auto &attrib : this->_renderAttribs) {
     updateUniforms(attrib, _shader->id);
+    GLenum mode = getGLRenderMode(attrib.mode);
     for (const auto &vao : attrib.vaos) {
       if (vao != nullptr) {
         if (vao->indices_size != 0) {
@@ -178,6 +179,27 @@ void Renderer::loadCubeMap(std::string vertex_sha, std::string fragment_sha,
 void Renderer::clearScreen() {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+GLenum Renderer::getGLRenderMode(enum PrimitiveMode mode) {
+  GLenum gl_mode;
+  switch (mode) {
+    case PrimitiveMode::Triangles:
+      gl_mode = GL_TRIANGLES;
+      break;
+    case PrimitiveMode::Points:
+      gl_mode = GL_POINTS;
+      break;
+    case PrimitiveMode::Line:
+      gl_mode = GL_LINE;
+      break;
+    case PrimitiveMode::LineStrip:
+      gl_mode = GL_LINE_STRIP;
+      break;
+    default:
+      break;
+  }
+  return (gl_mode);
 }
 
 void Renderer::switchPolygonMode(enum PolygonMode mode) {
