@@ -2,7 +2,7 @@
 
 Game::Game(void) {
   _camera =
-      new Camera(glm::vec3(0.0f, 1.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+      new Camera(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 }
 
 Game::Game(Game const& src) { *this = src; }

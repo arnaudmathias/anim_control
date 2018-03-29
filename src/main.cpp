@@ -15,7 +15,8 @@ int main(int argc, char **argv) {
        "textures/skybox_side.png", "textures/skybox_side.png"});
   MeshLoader loader;
   GL_DUMP_ERROR("renderer init");
-  Model *model = loader.loadScene("anims/Jumping.dae");
+  Model *model = loader.loadScene("anims/Walking.dae");
+  Model *model2 = loader.loadScene("anims/Jumping.dae");
   Game game;
   bool wireframe = false;
   while (!glfwWindowShouldClose(env.window)) {
@@ -25,7 +26,9 @@ int main(int argc, char **argv) {
     renderer.update(env);
     renderer.clearScreen();
     model->update(env.getAbsoluteTime());
+    model2->update(env.getAbsoluteTime());
     model->pushRenderAttribs(renderer);
+    model2->pushRenderAttribs(renderer);
     game.render(env, renderer);
     glfwSwapBuffers(env.window);
     GL_DUMP_ERROR("draw loop");
@@ -44,5 +47,6 @@ int main(int argc, char **argv) {
     }
   }
   delete model;
+  delete model2;
   return (EXIT_SUCCESS);
 }

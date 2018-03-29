@@ -6,8 +6,6 @@ Animation::Animation(std::string anim_name, double duration,
       _animation_start(0.0f),
       _duration(duration),
       _ticks_per_second(ticks_per_second) {
-  std::cout << "duration: " << _duration << std::endl;
-  std::cout << "tick_per_second: " << _ticks_per_second << std::endl;
   if (_ticks_per_second == 0.0) {
     _ticks_per_second = 25.0f;
   }

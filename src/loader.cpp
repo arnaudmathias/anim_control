@@ -71,8 +71,6 @@ Model* MeshLoader::loadScene(std::string filename) {
     std::cout << "scene num anim:" << scene->mNumAnimations << std::endl;
     std::cout << "scene num mesh:" << scene->mNumMeshes << std::endl;
     std::queue<unsigned short> node_queue;
-    // current_model->global_inverse =
-    // glm::inverse(to_glm(scene->mRootNode->mTransformation));
     current_model->global_inverse = to_glm(scene->mRootNode->mTransformation);
 
     parseBoneHierarchy(scene, scene->mRootNode);
