@@ -43,8 +43,7 @@ void Skeleton::local_to_global() {
   _global_poses[0] = _local_poses[0];
   for (unsigned short i = 1; i < _joint_count; i++) {
     const unsigned short parent_joint = _hierarchy[i];
-    //_global_poses[i] = _global_poses[parent_joint] * _local_poses[i];
-    _global_poses[i] = _local_poses[i] * _global_poses[parent_joint];
+    _global_poses[i] = _global_poses[parent_joint] * _local_poses[i];
   }
 }
 
@@ -89,7 +88,7 @@ void Model::animate(float timestamp) {
   skeleton->local_to_global();
   for (unsigned short i = 0; i < skeleton->_joint_count; i++) {
     skeleton->_global_poses[i] =
-        skeleton->_offsets[i] * skeleton->_global_poses[i] * global_inverse;
+        global_inverse * skeleton->_global_poses[i] * skeleton->_offsets[i];
   }
   renderAttrib.bones.resize(skeleton->_joint_count);
   for (unsigned short i = 0; i < skeleton->_joint_count; i++) {

@@ -10,11 +10,11 @@ uniform mat4 B[128];
 out vec3 frag_pos;
 
 void main() {
-	mat4 bone_transform = B[vert_bone_ids[0]] * vert_weights[0];
-	bone_transform += B[vert_bone_ids[1]] * vert_weights[1];
-	bone_transform += B[vert_bone_ids[2]] * vert_weights[2];
-	bone_transform += B[vert_bone_ids[3]] * vert_weights[3];
-	
+  mat4 bone_transform = B[vert_bone_ids[0]] * vert_weights[0];
+  bone_transform += B[vert_bone_ids[1]] * vert_weights[1];
+  bone_transform += B[vert_bone_ids[2]] * vert_weights[2];
+  bone_transform += B[vert_bone_ids[3]] * vert_weights[3];
+
   gl_Position = MVP * (bone_transform * vec4(vert_pos, 1.0));
   //gl_Position = MVP * vec4(vert_pos, 1.0);
   frag_pos = vec3(M * vec4(vert_pos, 1.0));

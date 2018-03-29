@@ -70,12 +70,13 @@ Model* MeshLoader::loadScene(std::string filename) {
   if (scene) {
     std::cout << "scene num anim:" << scene->mNumAnimations << std::endl;
     std::cout << "scene num mesh:" << scene->mNumMeshes << std::endl;
-
-    current_model->global_inverse =
-        glm::inverse(to_glm(scene->mRootNode->mTransformation));
+    std::queue<unsigned short> node_queue;
+    // current_model->global_inverse =
+    // glm::inverse(to_glm(scene->mRootNode->mTransformation));
+    current_model->global_inverse = to_glm(scene->mRootNode->mTransformation);
 
     parseBoneHierarchy(scene, scene->mRootNode);
-    parseNodeHierarchy(scene, scene->mRootNode, std::queue<unsigned short>());
+    parseNodeHierarchy(scene, scene->mRootNode, node_queue);
     current_model->node_ids = node_map;
 
     std::vector<VertexBoneData> bones;
@@ -174,34 +175,33 @@ void MeshLoader::loadAnimations(const aiScene* scene) {
       AnimChannel channel;
       const aiNodeAnim* node_anim = anim->mChannels[j];
       const std::string channel_key = std::string(node_anim->mNodeName.C_Str());
-      // std::cout << "node key: " << channel_key << std::endl;
 
       // Copy positions
       for (unsigned k = 0; k < node_anim->mNumPositionKeys; k++) {
-        AnimKey<glm::vec3> position_key = {};
-        position_key.time = node_anim->mPositionKeys[k].mTime;
-        position_key.value.x = node_anim->mPositionKeys[k].mValue.x;
-        position_key.value.y = node_anim->mPositionKeys[k].mValue.y;
-        position_key.value.z = node_anim->mPositionKeys[k].mValue.z;
+        AnimKey<glm::vec3> position_key = {
+            node_anim->mPositionKeys[k].mTime,
+            {node_anim->mPositionKeys[k].mValue.x,
+             node_anim->mPositionKeys[k].mValue.y,
+             node_anim->mPositionKeys[k].mValue.z}};
         channel.position_keys.push_back(position_key);
       }
       // Copy rotations
       for (unsigned k = 0; k < node_anim->mNumRotationKeys; k++) {
-        AnimKey<glm::quat> rotation_key = {};
-        rotation_key.time = node_anim->mRotationKeys[k].mTime;
-        rotation_key.value.x = node_anim->mRotationKeys[k].mValue.x;
-        rotation_key.value.y = node_anim->mRotationKeys[k].mValue.y;
-        rotation_key.value.z = node_anim->mRotationKeys[k].mValue.z;
-        rotation_key.value.w = node_anim->mRotationKeys[k].mValue.w;
+        AnimKey<glm::quat> rotation_key = {
+            node_anim->mRotationKeys[k].mTime,
+            {node_anim->mRotationKeys[k].mValue.w,
+             node_anim->mRotationKeys[k].mValue.x,
+             node_anim->mRotationKeys[k].mValue.y,
+             node_anim->mRotationKeys[k].mValue.z}};
         channel.rotation_keys.push_back(rotation_key);
       }
       // Copy scaling
       for (unsigned k = 0; k < node_anim->mNumScalingKeys; k++) {
-        AnimKey<glm::vec3> scaling_key = {};
-        scaling_key.time = node_anim->mScalingKeys[k].mTime;
-        scaling_key.value.x = node_anim->mScalingKeys[k].mValue.x;
-        scaling_key.value.y = node_anim->mScalingKeys[k].mValue.y;
-        scaling_key.value.z = node_anim->mScalingKeys[k].mValue.z;
+        AnimKey<glm::vec3> scaling_key = {
+            node_anim->mScalingKeys[k].mTime,
+            {node_anim->mScalingKeys[k].mValue.x,
+             node_anim->mScalingKeys[k].mValue.y,
+             node_anim->mScalingKeys[k].mValue.z}};
         channel.position_keys.push_back(scaling_key);
       }
       animation->addChannel(channel_key, channel);

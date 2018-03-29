@@ -5,7 +5,13 @@ Animation::Animation(std::string anim_name, double duration,
     : _name(anim_name),
       _animation_start(0.0f),
       _duration(duration),
-      _ticks_per_second(ticks_per_second) {}
+      _ticks_per_second(ticks_per_second) {
+  std::cout << "duration: " << _duration << std::endl;
+  std::cout << "tick_per_second: " << _ticks_per_second << std::endl;
+  if (_ticks_per_second == 0.0) {
+    _ticks_per_second = 25.0f;
+  }
+}
 
 Animation::Animation(Animation const& src) { *this = src; }
 
@@ -27,17 +33,19 @@ glm::mat4 Animation::animate(std::string key, float timestamp) {
     _animation_start = timestamp;
   }
   float time_since_animation_start = timestamp - _animation_start;
+  float time_in_tick = time_since_animation_start * _ticks_per_second;
+  float animation_time = fmod(time_in_tick, _duration);
   glm::mat4 res = glm::mat4(1.0f);
   auto channel_it = channels.find(key);
   if (channel_it == channels.end()) {
     return (res);
   }
-  glm::vec3 interpolated_position = interpolatePosition(
-      time_since_animation_start, channel_it->second.position_keys);
-  glm::quat interpolated_rotation = interpolateRotation(
-      time_since_animation_start, channel_it->second.rotation_keys);
-  glm::vec3 interpolated_scaling = interpolateScaling(
-      time_since_animation_start, channel_it->second.scale_keys);
+  glm::vec3 interpolated_position =
+      interpolatePosition(animation_time, channel_it->second.position_keys);
+  glm::quat interpolated_rotation =
+      interpolateRotation(animation_time, channel_it->second.rotation_keys);
+  glm::vec3 interpolated_scaling =
+      interpolateScaling(animation_time, channel_it->second.scale_keys);
 
   glm::mat4 mat_translation = glm::translate(interpolated_position);
   glm::mat4 mat_rotation = glm::mat4_cast(interpolated_rotation);
@@ -63,6 +71,10 @@ glm::vec3 Animation::interpolatePosition(
     return (position);
   }
   unsigned int index = nearest_index(time_in_seconds, positions);
+  /*float deltaTime = positions[index + 1].time - positions[index].time;
+  float inter_factor = (positions[index].time - time_in_seconds) / deltaTime;
+  position = glm::mix(positions[index].value, positions[index + 1].value,
+                      inter_factor);*/
   position = positions[index].value;
   return (position);
 }
@@ -97,10 +109,11 @@ unsigned int Animation::nearest_index(float time_in_seconds,
   if (data.size() == 0) {
     return (0);
   }
-  for (unsigned int i = 0; i < data.size() - 1; i++) {
+  unsigned int i;
+  for (i = 0; i < data.size() - 1; i++) {
     if (time_in_seconds < data[i + 1].time) {
       return (i);
     }
   }
-  return (0);
+  return (i);
 }
