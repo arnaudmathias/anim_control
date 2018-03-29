@@ -15,13 +15,16 @@ VAO::VAO(const std::vector<Vertex> &vertices) {
 
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (GLvoid *)offsetof(Vertex, position));
-  glVertexAttribIPointer(1, 4, GL_INT, sizeof(Vertex),
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (GLvoid *)offsetof(Vertex, normal));
+  glVertexAttribIPointer(2, 4, GL_INT, sizeof(Vertex),
                          (GLvoid *)offsetof(Vertex, bone_ids));
-  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (GLvoid *)offsetof(Vertex, weights));
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
+  glEnableVertexAttribArray(3);
   glBindVertexArray(0);
 }
 
@@ -50,13 +53,16 @@ VAO::VAO(const std::vector<Vertex> &vertices,
 
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (GLvoid *)offsetof(Vertex, position));
-  glVertexAttribIPointer(1, 4, GL_INT, sizeof(Vertex),
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (GLvoid *)offsetof(Vertex, normal));
+  glVertexAttribIPointer(2, 4, GL_INT, sizeof(Vertex),
                          (GLvoid *)offsetof(Vertex, bone_ids));
-  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+  glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         (GLvoid *)offsetof(Vertex, weights));
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
+  glEnableVertexAttribArray(3);
   glBindVertexArray(0);
   GL_DUMP_ERROR("vao end");
 }

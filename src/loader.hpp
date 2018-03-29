@@ -16,6 +16,11 @@ struct BoneInfo {
   glm::mat4 offset;
 };
 
+struct TextureInfo {
+  std::string type;
+  Texture* texture;
+};
+
 class MeshLoader {
  public:
   MeshLoader(void);
@@ -28,6 +33,7 @@ class MeshLoader {
   Model* current_model;
   std::unordered_map<std::string, BoneInfo> bone_map;
   std::unordered_map<std::string, unsigned short> node_map;
+  std::unordered_map<std::string, TextureInfo> texture_map;
 
   void processHierarchy(const aiScene* scene, aiNode* node,
                         unsigned short parent_id,
@@ -41,6 +47,7 @@ class MeshLoader {
   void populateVerticesBoneInfo(const aiMesh* mesh,
                                 std::vector<Vertex>& vertices);
   void setBoneData(Vertex& vertex, unsigned int bone_id, float weight);
+  void loadTextures(const aiMaterial* material, aiTextureType type);
   void setupSkeleton(const aiScene* scene);
   void reset();
 };

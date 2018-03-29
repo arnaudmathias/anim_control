@@ -11,13 +11,9 @@
 #include <iomanip>
 #include <iostream>
 
-struct VertexBoneData {
-  glm::ivec4 bone_ids = {0, 0, 0, 0};
-  glm::vec4 weights = {0, 0, 0, 0};
-};
-
 struct Vertex {
   glm::vec3 position = {0, 0, 0};
+  glm::vec3 normal = {0, 0, 0};
   glm::ivec4 bone_ids = {0, 0, 0, 0};
   glm::vec4 weights = {0, 0, 0, 0};
 
@@ -27,6 +23,7 @@ struct Vertex {
   Vertex& operator=(Vertex const& rhs) {
     if (this != &rhs) {
       this->position = rhs.position;
+      this->normal = rhs.normal;
       this->bone_ids = rhs.bone_ids;
       this->weights = rhs.weights;
     }

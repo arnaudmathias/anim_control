@@ -70,6 +70,7 @@ Model* MeshLoader::loadScene(std::string filename) {
   if (scene) {
     std::cout << "scene num anim:" << scene->mNumAnimations << std::endl;
     std::cout << "scene num mesh:" << scene->mNumMeshes << std::endl;
+    std::cout << "scene num materials:" << scene->mNumMaterials << std::endl;
     std::queue<unsigned short> node_queue;
     current_model->global_inverse = to_glm(scene->mRootNode->mTransformation);
 
@@ -77,7 +78,6 @@ Model* MeshLoader::loadScene(std::string filename) {
     parseNodeHierarchy(scene, scene->mRootNode, node_queue);
     current_model->node_ids = node_map;
 
-    std::vector<VertexBoneData> bones;
     if (scene->HasAnimations()) {
       setupSkeleton(scene);
       loadAnimations(scene);
@@ -100,7 +100,9 @@ void MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
     vertex.position.x = mesh->mVertices[i].x;
     vertex.position.y = mesh->mVertices[i].y;
     vertex.position.z = mesh->mVertices[i].z;
-
+    vertex.normal.x = mesh->mNormals[i].x;
+    vertex.normal.y = mesh->mNormals[i].y;
+    vertex.normal.z = mesh->mNormals[i].z;
     vertices.push_back(vertex);
   }
   for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
@@ -110,7 +112,13 @@ void MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
     }
   }
   populateVerticesBoneInfo(mesh, vertices);
+  const aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+  loadTextures(material, aiTextureType_DIFFUSE);
+  loadTextures(material, aiTextureType_AMBIENT);
+  loadTextures(material, aiTextureType_SPECULAR);
+
   std::cout << "vertices: " << vertices.size() << std::endl;
+  std::cout << "indices: " << indices.size() << std::endl;
   std::cout << "indices: " << indices.size() << std::endl;
   VAO* vao = new VAO(vertices, indices);
   current_model->renderAttrib.vaos.push_back(vao);
@@ -145,6 +153,16 @@ void MeshLoader::populateVerticesBoneInfo(const aiMesh* mesh,
       float weight = mesh->mBones[i]->mWeights[j].mWeight;
       setBoneData(vertices[vertex_id], node_index, weight);
     }
+  }
+}
+
+void MeshLoader::loadTextures(const aiMaterial* material, aiTextureType type) {
+  TextureInfo tex_info = {};
+  for (unsigned int i = 0; i < material->GetTextureCount(type); i++) {
+    aiString str;
+    material->GetTexture(type, i, &str);
+    tex_info.texture = new Texture(str.C_Str());
+    std::cout << "loading " << str.C_Str() << std::endl;
   }
 }
 
@@ -224,8 +242,6 @@ void MeshLoader::setupSkeleton(const aiScene* scene) {
     auto bone_it = bone_map.find(node_name);
     if (bone_it != bone_map.end()) {
       current_model->skeleton->_offsets[node_index] = bone_it->second.offset;
-    } else {
-      std::cout << "Can't find bone " << node_name << std::endl;
     }
   }
 }
