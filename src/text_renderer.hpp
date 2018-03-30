@@ -21,7 +21,7 @@ struct Character {
 };
 
 struct Font {
-  std::map<GLchar, Character> _characters;
+  std::map<GLchar, Character> characters;
   float size;
 };
 

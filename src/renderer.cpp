@@ -29,7 +29,7 @@ void Renderer::renderText(float pos_x, float pos_y, float scale,
   RenderState backup_state = _state;
 
   switchPolygonMode(PolygonMode::Fill);
-  switchDepthTestState(false);
+  switchDepthTestState(true);
   switchBlendingFunc(BlendFunc::OneMinusSrcAlpha);
   switchBlendingState(true);
 
@@ -224,7 +224,7 @@ void Renderer::switchBlendingFunc(enum BlendFunc mode) {
                                GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA};
   if (mode != _state.blendFunc) {
     unsigned int index_func = static_cast<unsigned int>(mode);
-    glBlendFunc(GL_ONE, gl_blend_funcs[index_func]);
+    glBlendFunc(GL_SRC_ALPHA, gl_blend_funcs[index_func]);
     _state.blendFunc = mode;
   }
 }

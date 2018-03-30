@@ -46,12 +46,14 @@ void MeshLoader::parseNodeHierarchy(const aiScene* scene, aiNode* node,
   // Bind each node to an ID during DFS traversal
   if (scene->HasAnimations()) {
     if (bone_map.find(std::string(node->mName.C_Str())) != bone_map.end()) {
-      node_map.emplace(std::string(node->mName.C_Str()), node_stack.size());
-      node_stack.push(node_stack.size());
+      node_map.emplace(std::string(node->mName.C_Str()),
+                       static_cast<unsigned short>(node_stack.size()));
+      node_stack.push(static_cast<unsigned short>(node_stack.size()));
     }
   } else {
-    node_map.emplace(std::string(node->mName.C_Str()), node_stack.size());
-    node_stack.push(node_stack.size());
+    node_map.emplace(std::string(node->mName.C_Str()),
+                     static_cast<unsigned short>(node_stack.size()));
+    node_stack.push(static_cast<unsigned short>(node_stack.size()));
   }
   for (unsigned int i = 0; i < node->mNumMeshes; i++) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
@@ -78,7 +80,7 @@ void MeshLoader::processHierarchy(const aiScene* scene, aiNode* node,
                                   unsigned short parent_id,
                                   std::vector<unsigned short>& hierarchy) {
   // flatten skeleton hierarchy by DFS traversal
-  unsigned short id = hierarchy.size();
+  unsigned short id = static_cast<unsigned short>(hierarchy.size());
   if (bone_map.find(std::string(node->mName.C_Str())) != bone_map.end()) {
     hierarchy.push_back(parent_id);
   }
@@ -248,7 +250,8 @@ void MeshLoader::setupSkeleton(const aiScene* scene) {
   std::vector<unsigned short> hierarchy;
   processHierarchy(scene, scene->mRootNode, 0, hierarchy);
 
-  current_model->skeleton = new Skeleton(hierarchy.size());
+  current_model->skeleton =
+      new Skeleton(static_cast<unsigned short>(hierarchy.size()));
   for (unsigned int i = 0; i < hierarchy.size(); i++) {
     current_model->skeleton->_hierarchy[i] = hierarchy[i];
   }
