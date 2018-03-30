@@ -118,11 +118,6 @@ void Model::animate(float timestamp) {
 
 void Model::updateAnimDebug() {
   if (skeleton == nullptr) return;
-  for (auto& vao : _animRenderAttrib.vaos) {
-    delete vao;
-  }
-  _animRenderAttrib.vaos.clear();
-
   _animRenderAttrib.mode = PrimitiveMode::Lines;
   _animRenderAttrib.model = renderAttrib.model;
   _animRenderAttrib.depthfunc = DepthTestFunc::Always;
@@ -144,5 +139,9 @@ void Model::updateAnimDebug() {
     positions.push_back(point_offset);
     positions.push_back(parent_point_offset);
   }
-  _animRenderAttrib.vaos.push_back(new VAO(positions));
+  if (_animRenderAttrib.vaos.size() && _animRenderAttrib.vaos[0] != nullptr) {
+    _animRenderAttrib.vaos[0]->update(positions);
+  } else {
+    _animRenderAttrib.vaos.push_back(new VAO(positions));
+  }
 }
