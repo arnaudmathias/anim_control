@@ -27,6 +27,8 @@ Model* MeshLoader::loadModel(std::vector<glm::vec3> vertices) {
   Model* model = new Model;
   VAO* vao = new VAO(vertices);
   model->renderAttrib.vaos.push_back(vao);
+  model->renderAttrib.shader =
+      new Shader("shaders/anim_debug.vert", "shaders/anim_debug.frag");
   return (model);
 }
 
@@ -95,9 +97,6 @@ Model* MeshLoader::loadScene(std::string filename) {
       filename, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
                     aiProcess_FlipUVs);
   if (scene) {
-    std::cout << "scene num anim:" << scene->mNumAnimations << std::endl;
-    std::cout << "scene num mesh:" << scene->mNumMeshes << std::endl;
-    std::cout << "scene num materials:" << scene->mNumMaterials << std::endl;
     std::queue<unsigned short> node_queue;
     current_model->global_inverse = to_glm(scene->mRootNode->mTransformation);
 
@@ -108,11 +107,10 @@ Model* MeshLoader::loadScene(std::string filename) {
     if (scene->HasAnimations()) {
       setupSkeleton(scene);
       loadAnimations(scene);
-      std::cout << "bone_map: " << bone_map.size() << std::endl;
     }
 
   } else {
-    std::cout << "Can't load " << filename << std::endl;
+    std::cerr << "Can't load " << filename << std::endl;
   }
   current_model = nullptr;
   importer.FreeScene();
@@ -145,9 +143,6 @@ void MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
   loadTextures(material, aiTextureType_AMBIENT);
   loadTextures(material, aiTextureType_SPECULAR);
 
-  std::cout << "vertices: " << vertices.size() << std::endl;
-  std::cout << "indices: " << indices.size() << std::endl;
-  std::cout << "indices: " << indices.size() << std::endl;
   VAO* vao = new VAO(vertices, indices);
   current_model->renderAttrib.vaos.push_back(vao);
 }
@@ -155,7 +150,6 @@ void MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
 void MeshLoader::loadMeshBones(const aiMesh* mesh) {
   for (unsigned int i = 0; i < mesh->mNumBones; i++) {
     std::string bone_name = std::string(mesh->mBones[i]->mName.C_Str());
-    // std::cout << "bone_name: " << bone_name << std::endl;
     auto bone_it = bone_map.find(bone_name);
     if (bone_it == bone_map.end()) {
       struct BoneInfo bone_info = {};
@@ -174,8 +168,6 @@ void MeshLoader::populateVerticesBoneInfo(const aiMesh* mesh,
       auto node_it = node_map.find(bone_name);
       if (node_it != node_map.end()) {
         node_index = static_cast<unsigned int>(node_it->second);
-      } else {
-        std::cout << "invalid node_index" << std::endl;
       }
       unsigned int vertex_id = mesh->mBones[i]->mWeights[j].mVertexId;
       float weight = mesh->mBones[i]->mWeights[j].mWeight;
@@ -190,7 +182,6 @@ void MeshLoader::loadTextures(const aiMaterial* material, aiTextureType type) {
     aiString str;
     material->GetTexture(type, i, &str);
     tex_info.texture = new Texture(str.C_Str());
-    std::cout << "loading " << str.C_Str() << std::endl;
   }
 }
 
@@ -214,7 +205,6 @@ void MeshLoader::loadAnimations(const aiScene* scene) {
     }
     Animation* animation =
         new Animation(anim_name, anim->mDuration, anim->mTicksPerSecond);
-    std::cout << "animations_name: " << anim_name << std::endl;
     for (unsigned int j = 0; j < anim->mNumChannels; j++) {
       AnimChannel channel;
       const aiNodeAnim* node_anim = anim->mChannels[j];
@@ -257,7 +247,6 @@ void MeshLoader::loadAnimations(const aiScene* scene) {
 void MeshLoader::setupSkeleton(const aiScene* scene) {
   std::vector<unsigned short> hierarchy;
   processHierarchy(scene, scene->mRootNode, 0, hierarchy);
-  std::cout << "hierarchy: " << hierarchy.size() << std::endl;
 
   current_model->skeleton = new Skeleton(hierarchy.size());
   for (unsigned int i = 0; i < hierarchy.size(); i++) {

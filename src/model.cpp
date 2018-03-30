@@ -1,7 +1,6 @@
 #include "model.hpp"
 
 Skeleton::Skeleton(unsigned short joint_count) : _joint_count(joint_count) {
-  std::cout << "joint_count: " << _joint_count << std::endl;
   _hierarchy = new unsigned short[_joint_count];
   _local_poses = new glm::mat4[_joint_count];
   _global_poses = new glm::mat4[_joint_count];
