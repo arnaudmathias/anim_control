@@ -12,6 +12,8 @@
 
 class Shader;
 
+namespace render {
+
 enum class DepthTestFunc {
   Less,
   Never,
@@ -38,28 +40,51 @@ enum class PrimitiveMode {
   Patches
 };
 
+enum class BlendFunc {
+  Zero,
+  One,
+  SrcColor,
+  OneMinusSrcColor,
+  DstColor,
+  OneMinusDstColor,
+  SrcApha,
+  OneMinusSrcAlpha,
+  DstAlpha,
+  OneMinusDstAlpha,
+  ConstantColor,
+  OneMinusConstantColor,
+  ConstantAlpha,
+  OneMinusConstantAlpha
+};
+
 enum class PolygonMode { Point, Line, Fill };
+
+struct RenderState {
+  enum PrimitiveMode primitiveMode = PrimitiveMode::Triangles;
+  enum PolygonMode polygonMode = PolygonMode::Fill;
+  enum DepthTestFunc depthTestFunc = DepthTestFunc::Less;
+  enum BlendFunc blendFunc = BlendFunc::Zero;
+  bool depthTest = true;
+  bool blending = true;
+};
 
 struct Uniforms {
   glm::mat4 view;
   glm::mat4 proj;
+  glm::mat4 ortho;
   glm::mat4 view_proj;
 };
 
-struct RenderAttrib {
+struct Attrib {
   glm::mat4 model;
   Shader* shader = nullptr;
   std::vector<VAO*> vaos;
   std::vector<glm::mat4> bones;
 
-  // Render state
-  bool depth_test = true;
-  enum PrimitiveMode mode = PrimitiveMode::Triangles;
-  enum DepthTestFunc depthfunc = DepthTestFunc::Less;
+  RenderState state;
+  Attrib(){};
 
-  RenderAttrib(){};
-
-  bool operator<(const struct RenderAttrib& rhs) const;
+  bool operator<(const struct Attrib& rhs) const;
 };
 
 class TextRenderer {
@@ -103,48 +128,50 @@ class Renderer {
  public:
   Renderer(int width, int height);
   Renderer(Renderer const& src);
-  virtual ~Renderer(void);
+  ~Renderer(void);
   Renderer& operator=(Renderer const& rhs);
-  void addRenderAttrib(const RenderAttrib& renderAttrib);
+  void addAttrib(const Attrib& attrib);
   void renderText(float pos_x, float pos_y, float scale, std::string text,
                   glm::vec3 color);
   void renderUI(std::string filename, float pos_x, float pos_y, float scale,
                 bool centered);
-  void renderbillboard(const std::vector<glm::vec3> vertices, glm::mat4 model,
-                       glm::mat4 view_proj);
-  void update(Env& env);
+  void update(const Env& env);
   void draw();
-  void flush();
-  void reset();
+  void flushAttribs();
   int getScreenWidth();
   int getScreenHeight();
   void loadCubeMap(std::string vertex_sha, std::string fragment_sha,
                    const std::vector<std::string>& textures);
   void clearScreen();
+
+  void setState(const RenderState& new_state);
   void switchPolygonMode(enum PolygonMode mode);
   void switchDepthTestFunc(enum DepthTestFunc mode);
+  void switchBlendingFunc(enum BlendFunc mode);
+
   void switchDepthTestState(bool state);
+  void switchBlendingState(bool state);
+
   Uniforms uniforms;
 
  private:
-  int _width;
-  int _height;
-  Texture* _cubeMapTexture;
-  VAO* _cubeMapVao;
-  Shader* _cubeMapShader;
-  Shader* _shader;
-  Shader* _billboardShader;
+  Renderer(void) = default;
+  std::vector<Attrib> _attribs;
+  int _width = 0;
+  int _height = 0;
+  Texture* _cubeMapTexture = nullptr;
+  VAO* _cubeMapVao = nullptr;
+  Shader* _cubeMapShader = nullptr;
+  Shader* _shader = nullptr;
+  Shader* _billboardShader = nullptr;
 
-  enum PolygonMode _polygonMode;
-  enum DepthTestFunc _depthTestFunc;
-  bool depthTest = true;
+  RenderState _state;
 
   TextRenderer _textRenderer;
   UiRenderer _uiRenderer;
-  Renderer(void);
-  std::vector<RenderAttrib> _renderAttribs;
+
   void switchShader(GLuint shader_id, int& current_shader_id);
-  void updateUniforms(const RenderAttrib& attrib, const int shader_id);
+  void updateUniforms(const Attrib& attrib, const int shader_id);
   GLenum getGLRenderMode(enum PrimitiveMode mode);
 };
 
@@ -174,3 +201,4 @@ static inline void setUniform(const GLint& location,
                        static_cast<const GLfloat*>(glm::value_ptr(data[0])));
   }
 }
+}  // namespace render

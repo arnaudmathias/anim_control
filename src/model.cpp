@@ -62,10 +62,10 @@ Model& Model::operator=(Model const& rhs) {
 }
 
 Model::~Model(void) {
-  for (auto& vao : renderAttrib.vaos) {
+  for (auto& vao : attrib.vaos) {
     delete vao;
   }
-  for (auto& vao : _animRenderAttrib.vaos) {
+  for (auto& vao : _animAttrib.vaos) {
     delete vao;
   }
   for (auto it = animations.begin(); it != animations.end(); it++) {
@@ -81,17 +81,17 @@ void Model::update(float timestamp) {
   glm::mat4 mat_rotation =
       glm::eulerAngleYXZ(glm::radians(90.0f), glm::radians(0.0f), 0.0f);
   glm::mat4 mat_scale = glm::scale(glm::vec3(1.0f, 1.0f, 1.0f));
-  renderAttrib.model = mat_translation * mat_rotation * mat_scale;
+  attrib.model = mat_translation * mat_rotation * mat_scale;
   animate(timestamp);
 }
 
-void Model::pushRenderAttribs(Renderer& renderer) {
-  renderer.addRenderAttrib(renderAttrib);
+void Model::pushRenderAttribs(render::Renderer& renderer) {
+  renderer.addAttrib(attrib);
 }
 
-void Model::pushDebugRenderAttribs(Renderer& renderer) {
+void Model::pushDebugRenderAttribs(render::Renderer& renderer) {
   updateAnimDebug();
-  renderer.addRenderAttrib(_animRenderAttrib);
+  renderer.addAttrib(_animAttrib);
 }
 
 void Model::animate(float timestamp) {
@@ -109,18 +109,18 @@ void Model::animate(float timestamp) {
     skeleton->_global_poses[i] =
         global_inverse * skeleton->_global_poses[i] * skeleton->_offsets[i];
   }
-  renderAttrib.bones.resize(skeleton->_joint_count);
+  attrib.bones.resize(skeleton->_joint_count);
   for (unsigned short i = 0; i < skeleton->_joint_count; i++) {
-    renderAttrib.bones[i] = skeleton->_global_poses[i];
+    attrib.bones[i] = skeleton->_global_poses[i];
   }
 }
 
 void Model::updateAnimDebug() {
   if (skeleton == nullptr) return;
-  _animRenderAttrib.mode = PrimitiveMode::Lines;
-  _animRenderAttrib.model = renderAttrib.model;
-  _animRenderAttrib.depthfunc = DepthTestFunc::Always;
-  _animRenderAttrib.shader = _debug_anim_shader;
+  _animAttrib.state.primitiveMode = render::PrimitiveMode::Lines;
+  _animAttrib.state.depthTestFunc = render::DepthTestFunc::Always;
+  _animAttrib.model = attrib.model;
+  _animAttrib.shader = _debug_anim_shader;
   std::vector<glm::vec3> positions;
   for (unsigned short i = 0; i < skeleton->_joint_count; i++) {
     const unsigned short parent_joint = skeleton->_hierarchy[i];
@@ -138,9 +138,9 @@ void Model::updateAnimDebug() {
     positions.push_back(point_offset);
     positions.push_back(parent_point_offset);
   }
-  if (_animRenderAttrib.vaos.size() && _animRenderAttrib.vaos[0] != nullptr) {
-    _animRenderAttrib.vaos[0]->update(positions);
+  if (_animAttrib.vaos.size() && _animAttrib.vaos[0] != nullptr) {
+    _animAttrib.vaos[0]->update(positions);
   } else {
-    _animRenderAttrib.vaos.push_back(new VAO(positions));
+    _animAttrib.vaos.push_back(new VAO(positions));
   }
 }

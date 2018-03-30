@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv) {
   Env env(1280, 720);
-  Renderer renderer(env.width, env.height);
+  render::Renderer renderer(env.width, env.height);
   renderer.loadCubeMap(
       "shaders/skybox.vert", "shaders/skybox.frag",
       {"textures/skybox_side.png", "textures/skybox_side.png",

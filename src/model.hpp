@@ -29,12 +29,12 @@ struct Model {
   ~Model();
 
   void update(float timestamp);
-  void pushRenderAttribs(Renderer& renderer);
-  void pushDebugRenderAttribs(Renderer& renderer);
+  void pushRenderAttribs(render::Renderer& renderer);
+  void pushDebugRenderAttribs(render::Renderer& renderer);
 
   std::unordered_map<std::string, Animation*> animations;
   std::unordered_map<std::string, unsigned short> node_ids;
-  RenderAttrib renderAttrib;
+  render::Attrib attrib;
   Skeleton* skeleton = nullptr;
   glm::mat4 global_inverse;
 
@@ -42,5 +42,5 @@ struct Model {
   void animate(float time_in_second);
   void updateAnimDebug();
   Shader* _debug_anim_shader = nullptr;
-  RenderAttrib _animRenderAttrib;
+  render::Attrib _animAttrib;
 };

@@ -13,12 +13,13 @@ class Game {
   virtual ~Game(void);
   Game& operator=(Game const& rhs);
   void update(Env& env);
-  void render(const Env& env, Renderer& renderer);
+  void render(const Env& env, render::Renderer& renderer);
 
  private:
   bool _debugMode = false;
   Camera* _camera;
   std::vector<Model*> _models;
 
-  void print_debug_info(const Env& env, Renderer& renderer, Camera& camera);
+  void print_debug_info(const Env& env, render::Renderer& renderer,
+                        Camera& camera);
 };

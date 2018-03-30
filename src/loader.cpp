@@ -26,8 +26,8 @@ Model* MeshLoader::loadModel(std::vector<glm::vec3> vertices) {
   reset();
   Model* model = new Model;
   VAO* vao = new VAO(vertices);
-  model->renderAttrib.vaos.push_back(vao);
-  model->renderAttrib.shader =
+  model->attrib.vaos.push_back(vao);
+  model->attrib.shader =
       new Shader("shaders/anim_debug.vert", "shaders/anim_debug.frag");
   return (model);
 }
@@ -37,7 +37,7 @@ Model* MeshLoader::loadModel(std::vector<glm::vec3> vertices,
   reset();
   Model* model = new Model;
   VAO* vao = new VAO(vertices, indices);
-  model->renderAttrib.vaos.push_back(vao);
+  model->attrib.vaos.push_back(vao);
   return (model);
 }
 
@@ -144,7 +144,7 @@ void MeshLoader::processMesh(const aiScene* scene, const aiMesh* mesh) {
   loadTextures(material, aiTextureType_SPECULAR);
 
   VAO* vao = new VAO(vertices, indices);
-  current_model->renderAttrib.vaos.push_back(vao);
+  current_model->attrib.vaos.push_back(vao);
 }
 
 void MeshLoader::loadMeshBones(const aiMesh* mesh) {

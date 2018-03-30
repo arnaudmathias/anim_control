@@ -6,6 +6,12 @@ Game::Game(void) {
   MeshLoader loader;
   _models.push_back(loader.loadScene("anims/Walking.dae"));
   _models.push_back(loader.loadScene("anims/Jumping.dae"));
+  _models.push_back(loader.loadModel({{0.0f, 1.0f, 1.0f},
+				      {1.0f, 1.0f, 1.0f},
+				      {1.0f, 1.0f, 0.0f},
+				      {1.0f, 1.0f, 0.0f},
+				      {0.0f, 1.0f, 0.0f},
+				      {0.0f, 1.0f, 1.0f}}));
 }
 
 Game::Game(Game const& src) { *this = src; }
@@ -36,7 +42,7 @@ void Game::update(Env& env) {
   }
 }
 
-void Game::render(const Env& env, Renderer& renderer) {
+void Game::render(const Env& env, render::Renderer& renderer) {
   float fwidth = static_cast<float>(renderer.getScreenWidth());
   float fheight = static_cast<float>(renderer.getScreenHeight());
   renderer.uniforms.view = _camera->view;
@@ -51,7 +57,7 @@ void Game::render(const Env& env, Renderer& renderer) {
   }
   renderer.draw();
 
-  renderer.flush();
+  renderer.flushAttribs();
   if (_debugMode) {
     print_debug_info(env, renderer, *_camera);
   }
@@ -63,7 +69,7 @@ std::string float_to_string(float f, int prec) {
   return out.str();
 }
 
-void Game::print_debug_info(const Env& env, Renderer& renderer,
+void Game::print_debug_info(const Env& env, render::Renderer& renderer,
 			    Camera& camera) {
   float fheight = static_cast<float>(renderer.getScreenHeight());
   float fwidth = static_cast<float>(renderer.getScreenWidth());
