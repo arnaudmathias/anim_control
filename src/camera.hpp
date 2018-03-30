@@ -24,21 +24,17 @@ class Camera {
   float oldMouseYpos;
   float zNear;
   float zFar;
-  float velocity;  // m/s
 
   Camera(glm::vec3 pos, glm::vec3 target, int width = 1024, int height = 1024);
-  void update(Env &env);
+  void update(Env &env, float deltaTime);
   void rotate(float hor, float ver);  // in radians
   float getAspectRatio();
 
  private:
-  void updateMatrix();
+  void updateMatrix(float deltaTime);
   bool mouseMoved = false;
   float horAngle;
   float verAngle;
   float speed;
-  float deltaTime;
-  float lastTime;
   float lastVelocity;
-  glm::vec3 lastPos;
 };

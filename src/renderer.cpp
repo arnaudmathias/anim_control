@@ -161,10 +161,18 @@ void Renderer::draw() {
   glBindVertexArray(0);
 }
 
-void Renderer::update(const Env &env) {
+void Renderer::update(Env &env) {
   if (env.width != _width || env.height != _height) {
     _width = env.width;
     _height = env.height;
+  }
+  if (env.inputHandler.keys[GLFW_KEY_M]) {
+    env.inputHandler.keys[GLFW_KEY_M] = false;
+    if (_polygonMode == PolygonMode::Line) {
+      switchPolygonMode(PolygonMode::Fill);
+    } else if (_polygonMode == PolygonMode::Fill) {
+      switchPolygonMode(PolygonMode::Line);
+    }
   }
 }
 

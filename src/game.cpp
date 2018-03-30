@@ -5,7 +5,7 @@ Game::Game(void) {
       new Camera(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
   MeshLoader loader;
   _models.push_back(loader.loadScene("anims/Walking.dae"));
-  //_models.push_back(loader.loadScene("anims/Jumping.dae"));
+  _models.push_back(loader.loadScene("anims/Jumping.dae"));
 }
 
 Game::Game(Game const& src) { *this = src; }
@@ -26,7 +26,7 @@ Game& Game::operator=(Game const& rhs) {
 }
 
 void Game::update(Env& env) {
-  _camera->update(env);
+  _camera->update(env, env.getDeltaTime());
   if (env.inputHandler.keys[GLFW_KEY_I]) {
     env.inputHandler.keys[GLFW_KEY_I] = false;
     _debugMode = !_debugMode;
@@ -45,9 +45,12 @@ void Game::render(const Env& env, Renderer& renderer) {
 
   for (auto& model : _models) {
     model->pushRenderAttribs(renderer);
+    if (_debugMode) {
+      model->pushDebugRenderAttribs(renderer);
+    }
   }
-
   renderer.draw();
+
   renderer.flush();
   if (_debugMode) {
     print_debug_info(env, renderer, *_camera);

@@ -80,20 +80,19 @@ Model::~Model(void) {
 void Model::update(float timestamp) {
   glm::mat4 mat_translation = glm::translate(glm::vec3(0.0f, 0.0f, 0.0f));
   glm::mat4 mat_rotation =
-      glm::eulerAngleYXZ(glm::radians(0.0f), glm::radians(0.0f), 0.0f);
+      glm::eulerAngleYXZ(glm::radians(90.0f), glm::radians(0.0f), 0.0f);
   glm::mat4 mat_scale = glm::scale(glm::vec3(1.0f, 1.0f, 1.0f));
   renderAttrib.model = mat_translation * mat_rotation * mat_scale;
   animate(timestamp);
-  if (_debug_anim) {
-    updateAnimDebug();
-  }
 }
 
 void Model::pushRenderAttribs(Renderer& renderer) {
   renderer.addRenderAttrib(renderAttrib);
-  if (_debug_anim) {
-    renderer.addRenderAttrib(_animRenderAttrib);
-  }
+}
+
+void Model::pushDebugRenderAttribs(Renderer& renderer) {
+  updateAnimDebug();
+  renderer.addRenderAttrib(_animRenderAttrib);
 }
 
 void Model::animate(float timestamp) {

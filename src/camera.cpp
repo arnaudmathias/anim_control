@@ -8,7 +8,6 @@ Camera::Camera(glm::vec3 position, glm::vec3 targetPosition, int width,
       mouseInit(false),
       zNear(0.1f),
       zFar(1000.0f),
-      velocity(0.0f),
       mouseMoved(false),
       speed(1.0f) {
   proj = glm::perspective(
@@ -17,13 +16,10 @@ Camera::Camera(glm::vec3 position, glm::vec3 targetPosition, int width,
   glm::vec3 direction = glm::normalize(targetPosition - position);
   verAngle = asinf(direction.y);
   horAngle = atan2(direction.x, direction.z);
-  updateMatrix();
+  updateMatrix(0.0f);
 }
 
-void Camera::updateMatrix() {
-  double currentTime = glfwGetTime();
-  deltaTime = static_cast<float>(currentTime - lastTime);
-  lastTime = static_cast<float>(currentTime);
+void Camera::updateMatrix(float deltaTime) {
   if (mouseMoved) {
     horAngle += 0.1f * deltaTime * (oldMouseXpos - mouseXpos);
     verAngle += 0.1f * deltaTime * (oldMouseYpos - mouseYpos);
@@ -38,12 +34,6 @@ void Camera::updateMatrix() {
   right = glm::normalize(right);
   up = glm::normalize(glm::cross(right, dir));
   view = glm::lookAt(pos, dir + pos, up);
-  if (static_cast<float>(currentTime) - lastVelocity > 1.0f) {
-    velocity = glm::distance(lastPos, pos) /
-               (static_cast<float>(currentTime) - lastVelocity);
-    lastVelocity = static_cast<float>(currentTime);
-    lastPos = pos;
-  }
 }
 
 void Camera::rotate(float hor, float ver) {
@@ -51,7 +41,7 @@ void Camera::rotate(float hor, float ver) {
   verAngle += ver;
 }
 
-void Camera::update(Env &env) {
+void Camera::update(Env &env, float deltaTime) {
   if (width != env.width || height != env.height) {
     proj = glm::perspective(
         glm::radians(80.0f),
@@ -104,7 +94,7 @@ void Camera::update(Env &env) {
       this->mouseMoved = true;
     }
   }
-  updateMatrix();
+  updateMatrix(deltaTime);
 }
 
 float Camera::getAspectRatio() {

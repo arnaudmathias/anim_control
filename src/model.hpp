@@ -30,6 +30,7 @@ struct Model {
 
   void update(float timestamp);
   void pushRenderAttribs(Renderer& renderer);
+  void pushDebugRenderAttribs(Renderer& renderer);
 
   std::unordered_map<std::string, Animation*> animations;
   std::unordered_map<std::string, unsigned short> node_ids;
@@ -41,6 +42,5 @@ struct Model {
   void animate(float time_in_second);
   void updateAnimDebug();
   Shader* _debug_anim_shader = nullptr;
-  bool _debug_anim = true;
   RenderAttrib _animRenderAttrib;
 };

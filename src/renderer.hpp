@@ -112,7 +112,7 @@ class Renderer {
                 bool centered);
   void renderbillboard(const std::vector<glm::vec3> vertices, glm::mat4 model,
                        glm::mat4 view_proj);
-  void update(const Env& env);
+  void update(Env& env);
   void draw();
   void flush();
   void reset();

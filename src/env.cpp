@@ -122,6 +122,14 @@ void Env::update() {
   this->_deltaTime = static_cast<float>(deltaTime);
   this->_absoluteTime = static_cast<float>(currentTime);
   this->_frame++;
+
+  if (inputHandler.keys[GLFW_KEY_ESCAPE]) {
+    glfwSetWindowShouldClose(window, 1);
+  }
+  if (inputHandler.keys[GLFW_KEY_F]) {
+    inputHandler.keys[GLFW_KEY_F] = false;
+    toggleFullscreen();
+  }
 }
 
 void Env::updateFpsCounter() {
