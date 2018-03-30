@@ -12,7 +12,31 @@
 
 class Shader;
 
-enum class PrimitiveMode { Triangles, Points, Line, LineStrip };
+enum class DepthTestFunc {
+  Less,
+  Never,
+  Equal,
+  LessEqual,
+  Greater,
+  NotEqual,
+  GreaterEqual,
+  Always
+};
+
+enum class PrimitiveMode {
+  Points,
+  LineStrip,
+  LineLoop,
+  Lines,
+  LineStripAdjacency,
+  LinesAdjacency,
+  TriangleStrip,
+  TriangleFan,
+  Triangles,
+  TriangleStripAdjacency,
+  TriananglesAdjacency,
+  Patches
+};
 
 enum class PolygonMode { Point, Line, Fill };
 
@@ -23,10 +47,16 @@ struct Uniforms {
 };
 
 struct RenderAttrib {
-  enum PrimitiveMode mode = PrimitiveMode::Triangles;
-  std::vector<VAO*> vaos;
   glm::mat4 model;
+  Shader* shader = nullptr;
+  std::vector<VAO*> vaos;
   std::vector<glm::mat4> bones;
+
+  // Render state
+  bool depth_test = true;
+  enum PrimitiveMode mode = PrimitiveMode::Triangles;
+  enum DepthTestFunc depthfunc = DepthTestFunc::Less;
+
   RenderAttrib(){};
 
   bool operator<(const struct RenderAttrib& rhs) const;
@@ -92,6 +122,8 @@ class Renderer {
                    const std::vector<std::string>& textures);
   void clearScreen();
   void switchPolygonMode(enum PolygonMode mode);
+  void switchDepthTestFunc(enum DepthTestFunc mode);
+  void switchDepthTestState(bool state);
   Uniforms uniforms;
 
  private:
@@ -102,7 +134,11 @@ class Renderer {
   Shader* _cubeMapShader;
   Shader* _shader;
   Shader* _billboardShader;
+
   enum PolygonMode _polygonMode;
+  enum DepthTestFunc _depthTestFunc;
+  bool depthTest = true;
+
   TextRenderer _textRenderer;
   UiRenderer _uiRenderer;
   Renderer(void);

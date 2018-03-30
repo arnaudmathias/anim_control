@@ -55,20 +55,24 @@ void Renderer::renderText(float pos_x, float pos_y, float scale,
                           std::string text, glm::vec3 color) {
   enum PolygonMode backup_mode = _polygonMode;
   switchPolygonMode(PolygonMode::Fill);
+  switchDepthTestState(false);
   glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->_width),
                                     0.0f, static_cast<float>(this->_height));
   _textRenderer.renderText(pos_x, pos_y, scale, text, color, projection);
   switchPolygonMode(backup_mode);
+  switchDepthTestState(true);
 }
 
 void Renderer::renderUI(std::string filename, float pos_x, float pos_y,
                         float scale, bool centered) {
   enum PolygonMode backup_mode = _polygonMode;
   switchPolygonMode(PolygonMode::Fill);
+  switchDepthTestState(false);
   glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->_width),
                                     0.0f, static_cast<float>(this->_height));
   _uiRenderer.renderUI(filename, pos_x, pos_y, scale, projection, centered);
   switchPolygonMode(backup_mode);
+  switchDepthTestState(true);
 }
 
 void Renderer::renderbillboard(const std::vector<glm::vec3> vertices,
@@ -96,7 +100,6 @@ void Renderer::switchShader(GLuint shader_id, int &current_shader_id) {
     glUseProgram(shader_id);
     setUniform(glGetUniformLocation(shader_id, "P"), this->uniforms.proj);
     setUniform(glGetUniformLocation(shader_id, "V"), this->uniforms.view);
-    setUniform(glGetUniformLocation(shader_id, "texture_array"), 0);
     current_shader_id = shader_id;
   }
 }
@@ -116,18 +119,26 @@ void Renderer::draw() {
   int shader_id = -1;
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glViewport(0, 0, _width, _height);
-  switchShader(_shader->id, shader_id);
+  switchDepthTestState(true);
   for (const auto &attrib : this->_renderAttribs) {
-    updateUniforms(attrib, _shader->id);
+    switchDepthTestState(attrib.depth_test);
+    switchDepthTestFunc(attrib.depthfunc);
+    if (attrib.shader == nullptr) {
+      switchShader(_shader->id, shader_id);
+      updateUniforms(attrib, _shader->id);
+    } else {
+      switchShader(attrib.shader->id, shader_id);
+      updateUniforms(attrib, attrib.shader->id);
+    }
     GLenum mode = getGLRenderMode(attrib.mode);
     for (const auto &vao : attrib.vaos) {
       if (vao != nullptr) {
         if (vao->indices_size != 0) {
           glBindVertexArray(vao->vao);
-          glDrawElements(GL_TRIANGLES, vao->indices_size, GL_UNSIGNED_INT, 0);
+          glDrawElements(mode, vao->indices_size, GL_UNSIGNED_INT, 0);
         } else if (vao->vertices_size != 0) {
           glBindVertexArray(vao->vao);
-          glDrawArrays(GL_TRIANGLES, 0, vao->vertices_size);
+          glDrawArrays(mode, 0, vao->vertices_size);
         }
       }
     }
@@ -182,48 +193,56 @@ void Renderer::clearScreen() {
 }
 
 GLenum Renderer::getGLRenderMode(enum PrimitiveMode mode) {
-  GLenum gl_mode;
-  switch (mode) {
-    case PrimitiveMode::Triangles:
-      gl_mode = GL_TRIANGLES;
-      break;
-    case PrimitiveMode::Points:
-      gl_mode = GL_POINTS;
-      break;
-    case PrimitiveMode::Line:
-      gl_mode = GL_LINE;
-      break;
-    case PrimitiveMode::LineStrip:
-      gl_mode = GL_LINE_STRIP;
-      break;
-    default:
-      break;
-  }
-  return (gl_mode);
+  GLenum gl_primitive_modes[] = {GL_POINTS,
+                                 GL_LINE_STRIP,
+                                 GL_LINE_LOOP,
+                                 GL_LINES,
+                                 GL_LINE_STRIP_ADJACENCY,
+                                 GL_LINES_ADJACENCY,
+                                 GL_TRIANGLE_STRIP,
+                                 GL_TRIANGLE_FAN,
+                                 GL_TRIANGLES,
+                                 GL_TRIANGLE_STRIP_ADJACENCY,
+                                 GL_TRIANGLES_ADJACENCY,
+                                 GL_PATCHES};
+  unsigned index_mode = static_cast<unsigned int>(mode);
+  return (gl_primitive_modes[index_mode]);
 }
 
 void Renderer::switchPolygonMode(enum PolygonMode mode) {
+  GLenum gl_polygon_modes[3] = {GL_POINT, GL_LINE, GL_FILL};
   if (mode != _polygonMode) {
-    switch (mode) {
-      case PolygonMode::Point:
-        glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-        break;
-      case PolygonMode::Line:
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        break;
-      case PolygonMode::Fill:
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        break;
-      default:
-        break;
-    }
+    unsigned int index_mode = static_cast<unsigned int>(mode);
+    glPolygonMode(GL_FRONT_AND_BACK, gl_polygon_modes[index_mode]);
     _polygonMode = mode;
+  }
+}
+
+void Renderer::switchDepthTestFunc(enum DepthTestFunc mode) {
+  GLenum gl_depth_funcs[8] = {GL_LESS,    GL_NEVER,    GL_EQUAL,  GL_LEQUAL,
+                              GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
+  if (mode != _depthTestFunc) {
+    unsigned int index_func = static_cast<unsigned int>(mode);
+    glDepthFunc(gl_depth_funcs[index_func]);
+    _depthTestFunc = mode;
+  }
+}
+
+void Renderer::switchDepthTestState(bool state) {
+  if (state != depthTest) {
+    if (state) {
+      glEnable(GL_DEPTH_TEST);
+    } else {
+      glDisable(GL_DEPTH_TEST);
+    }
+    depthTest = state;
   }
 }
 
 bool RenderAttrib::operator<(const struct RenderAttrib &rhs) const {
   if (this->vaos[0] != nullptr && rhs.vaos[0] != nullptr) {
-    return (this->vaos[0]->vao < rhs.vaos[0]->vao);
+    return (this->depth_test == false);
+    // return (this->vaos[0]->vao < rhs.vaos[0]->vao);
   } else {
     return (true);
   }
@@ -303,7 +322,6 @@ TextRenderer::~TextRenderer() {
 void TextRenderer::renderText(float pos_x, float pos_y, float scale,
                               std::string text, glm::vec3 color,
                               glm::mat4 ortho) {
-  glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glUseProgram(_shader_id);
@@ -336,7 +354,6 @@ void TextRenderer::renderText(float pos_x, float pos_y, float scale,
     }
   }
   glBindVertexArray(0);
-  glEnable(GL_DEPTH_TEST);
   glBindTexture(GL_TEXTURE_2D, 0);
   glDisable(GL_BLEND);
 }
