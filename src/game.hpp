@@ -2,6 +2,8 @@
 #include <iomanip>
 #include "anim.hpp"
 #include "camera.hpp"
+#include "loader.hpp"
+#include "model.hpp"
 #include "renderer.hpp"
 
 class Game {
@@ -14,7 +16,9 @@ class Game {
   void render(const Env& env, Renderer& renderer);
 
  private:
-  bool _debugMode;
+  bool _debugMode = false;
   Camera* _camera;
+  std::vector<Model*> _models;
+
   void print_debug_info(const Env& env, Renderer& renderer, Camera& camera);
 };

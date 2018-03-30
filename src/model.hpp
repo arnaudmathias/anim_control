@@ -23,7 +23,7 @@ class Skeleton {
 };
 
 struct Model {
-  Model(void) = default;
+  Model(void);
   Model(Model const& src);
   Model& operator=(Model const& rhs);
   ~Model();
@@ -33,11 +33,14 @@ struct Model {
 
   std::unordered_map<std::string, Animation*> animations;
   std::unordered_map<std::string, unsigned short> node_ids;
-  std::vector<glm::mat4> transforms;
   RenderAttrib renderAttrib;
   Skeleton* skeleton = nullptr;
   glm::mat4 global_inverse;
 
  private:
   void animate(float time_in_second);
+  void updateAnimDebug();
+  Shader* _debug_anim_shader = nullptr;
+  bool _debug_anim = true;
+  RenderAttrib _animRenderAttrib;
 };

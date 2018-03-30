@@ -1,6 +1,7 @@
 #include "model.hpp"
 
 Skeleton::Skeleton(unsigned short joint_count) : _joint_count(joint_count) {
+  std::cout << "joint_count: " << _joint_count << std::endl;
   _hierarchy = new unsigned short[_joint_count];
   _local_poses = new glm::mat4[_joint_count];
   _global_poses = new glm::mat4[_joint_count];
@@ -47,6 +48,11 @@ void Skeleton::local_to_global() {
   }
 }
 
+Model::Model(void) {
+  _debug_anim_shader =
+      new Shader("shaders/anim_debug.vert", "shaders/anim_debug.frag");
+}
+
 Model::Model(Model const& rhs) { *this = rhs; }
 
 Model& Model::operator=(Model const& rhs) {
@@ -60,6 +66,9 @@ Model::~Model(void) {
   for (auto& vao : renderAttrib.vaos) {
     delete vao;
   }
+  for (auto& vao : _animRenderAttrib.vaos) {
+    delete vao;
+  }
   for (auto it = animations.begin(); it != animations.end(); it++) {
     delete it->second;
   }
@@ -71,19 +80,24 @@ Model::~Model(void) {
 void Model::update(float timestamp) {
   glm::mat4 mat_translation = glm::translate(glm::vec3(0.0f, 0.0f, 0.0f));
   glm::mat4 mat_rotation =
-      glm::eulerAngleYXZ(glm::radians(90.0f), glm::radians(0.0f), 0.0f);
+      glm::eulerAngleYXZ(glm::radians(0.0f), glm::radians(0.0f), 0.0f);
   glm::mat4 mat_scale = glm::scale(glm::vec3(1.0f, 1.0f, 1.0f));
   renderAttrib.model = mat_translation * mat_rotation * mat_scale;
   animate(timestamp);
+  if (_debug_anim) {
+    updateAnimDebug();
+  }
 }
 
 void Model::pushRenderAttribs(Renderer& renderer) {
   renderer.addRenderAttrib(renderAttrib);
+  if (_debug_anim) {
+    renderer.addRenderAttrib(_animRenderAttrib);
+  }
 }
 
 void Model::animate(float timestamp) {
   if (skeleton == nullptr) return;
-
   for (auto anim_it : animations) {
     Animation* anim = anim_it.second;
     for (auto node_it : node_ids) {
@@ -101,4 +115,35 @@ void Model::animate(float timestamp) {
   for (unsigned short i = 0; i < skeleton->_joint_count; i++) {
     renderAttrib.bones[i] = skeleton->_global_poses[i];
   }
+}
+
+void Model::updateAnimDebug() {
+  if (skeleton == nullptr) return;
+  for (auto& vao : _animRenderAttrib.vaos) {
+    delete vao;
+  }
+  _animRenderAttrib.vaos.clear();
+
+  _animRenderAttrib.mode = PrimitiveMode::Lines;
+  _animRenderAttrib.model = renderAttrib.model;
+  _animRenderAttrib.depthfunc = DepthTestFunc::Always;
+  _animRenderAttrib.shader = _debug_anim_shader;
+  std::vector<glm::vec3> positions;
+  for (unsigned short i = 0; i < skeleton->_joint_count; i++) {
+    const unsigned short parent_joint = skeleton->_hierarchy[i];
+    glm::mat4 bone_offset =
+        skeleton->_global_poses[i] * glm::inverse(skeleton->_offsets[i]);
+    glm::mat4 parent_bone_offset =
+        skeleton->_global_poses[parent_joint] *
+        glm::inverse(skeleton->_offsets[parent_joint]);
+
+    glm::vec3 point_offset =
+        glm::vec3(bone_offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    glm::vec3 parent_point_offset =
+        glm::vec3(parent_bone_offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+    positions.push_back(point_offset);
+    positions.push_back(parent_point_offset);
+  }
+  _animRenderAttrib.vaos.push_back(new VAO(positions));
 }

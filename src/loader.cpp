@@ -25,8 +25,15 @@ glm::mat4 to_glm(aiMatrix4x4t<float> aimat) {
 void MeshLoader::parseNodeHierarchy(const aiScene* scene, aiNode* node,
                                     std::queue<unsigned short>& node_stack) {
   // Bind each node to an ID during DFS traversal
-  node_map.emplace(std::string(node->mName.C_Str()), node_stack.size());
-  node_stack.push(node_stack.size());
+  if (scene->HasAnimations()) {
+    if (bone_map.find(std::string(node->mName.C_Str())) != bone_map.end()) {
+      node_map.emplace(std::string(node->mName.C_Str()), node_stack.size());
+      node_stack.push(node_stack.size());
+    }
+  } else {
+    node_map.emplace(std::string(node->mName.C_Str()), node_stack.size());
+    node_stack.push(node_stack.size());
+  }
   for (unsigned int i = 0; i < node->mNumMeshes; i++) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
     processMesh(scene, mesh);
@@ -53,7 +60,10 @@ void MeshLoader::processHierarchy(const aiScene* scene, aiNode* node,
                                   std::vector<unsigned short>& hierarchy) {
   // flatten skeleton hierarchy by DFS traversal
   unsigned short id = hierarchy.size();
-  hierarchy.push_back(parent_id);
+  if (bone_map.find(std::string(node->mName.C_Str())) != bone_map.end()) {
+    hierarchy.push_back(parent_id);
+  }
+  // hierarchy.push_back(parent_id);
   for (unsigned int i = 0; i < node->mNumChildren; i++) {
     processHierarchy(scene, node->mChildren[i], id, hierarchy);
   }
@@ -81,6 +91,7 @@ Model* MeshLoader::loadScene(std::string filename) {
     if (scene->HasAnimations()) {
       setupSkeleton(scene);
       loadAnimations(scene);
+      std::cout << "bone_map: " << bone_map.size() << std::endl;
     }
 
   } else {

@@ -32,21 +32,21 @@ struct Vertex {
 };
 
 static std::ostream& operator<<(std::ostream& o, glm::vec3 const& v) {
-  o << glm::to_string(v) << std::endl;
+  o << glm::to_string(v);
   return (o);
 }
 
 static std::ostream& operator<<(std::ostream& o, glm::vec4 const& v) {
-  o << glm::to_string(v) << std::endl;
+  o << glm::to_string(v);
   return (o);
 }
 
 static std::ostream& operator<<(std::ostream& o, glm::quat const& v) {
-  o << glm::to_string(v) << std::endl;
+  o << glm::to_string(v);
   return (o);
 }
 
 static std::ostream& operator<<(std::ostream& o, glm::mat4 const& v) {
-  o << glm::to_string(v) << std::endl;
+  o << glm::to_string(v);
   return (o);
 }

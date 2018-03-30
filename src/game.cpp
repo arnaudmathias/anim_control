@@ -3,11 +3,19 @@
 Game::Game(void) {
   _camera =
       new Camera(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+  MeshLoader loader;
+  _models.push_back(loader.loadScene("anims/Walking.dae"));
+  //_models.push_back(loader.loadScene("anims/Jumping.dae"));
 }
 
 Game::Game(Game const& src) { *this = src; }
 
-Game::~Game(void) { delete _camera; }
+Game::~Game(void) {
+  delete _camera;
+  for (auto& model : _models) {
+    delete model;
+  }
+}
 
 Game& Game::operator=(Game const& rhs) {
   if (this != &rhs) {
@@ -23,6 +31,9 @@ void Game::update(Env& env) {
     env.inputHandler.keys[GLFW_KEY_I] = false;
     _debugMode = !_debugMode;
   }
+  for (auto& model : _models) {
+    model->update(env.getAbsoluteTime());
+  }
 }
 
 void Game::render(const Env& env, Renderer& renderer) {
@@ -31,6 +42,10 @@ void Game::render(const Env& env, Renderer& renderer) {
   renderer.uniforms.view = _camera->view;
   renderer.uniforms.proj = _camera->proj;
   renderer.uniforms.view_proj = _camera->proj * _camera->view;
+
+  for (auto& model : _models) {
+    model->pushRenderAttribs(renderer);
+  }
 
   renderer.draw();
   renderer.flush();
