@@ -1,6 +1,4 @@
 #include "renderer.hpp"
-#define STB_TRUETYPE_IMPLEMENTATION
-#include "stb_truetype.h"
 
 namespace render {
 
@@ -35,9 +33,9 @@ void Renderer::renderText(float pos_x, float pos_y, float scale,
   switchBlendingFunc(BlendFunc::OneMinusSrcAlpha);
   switchBlendingState(true);
 
-  glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(this->_width),
-                                    0.0f, static_cast<float>(this->_height));
-  _textRenderer.renderText(pos_x, pos_y, scale, text, color, projection);
+  TextProperties prop = {};
+  prop.color = color;
+  _textRenderer.renderText(pos_x, pos_y, scale, text, prop);
 
   setState(backup_state);
 }
@@ -134,6 +132,7 @@ void Renderer::update(const Env &env) {
     _width = env.width;
     _height = env.height;
   }
+  _textRenderer.update(env);
 }
 
 void Renderer::flushAttribs() { this->_attribs.clear(); }
@@ -258,113 +257,6 @@ bool Attrib::operator<(const struct Attrib &rhs) const {
   } else {
     return (true);
   }
-}
-
-TextRenderer::TextRenderer(void) {
-  Shader shader("shaders/text.vert", "shaders/text.frag");
-  this->_shader_id = shader.id;
-
-  unsigned int filesize = io::get_filesize("fonts/minecraft.ttf");
-  unsigned char *ttf_buffer = new unsigned char[filesize + 1];
-  FILE *font_fp = fopen("fonts/minecraft.ttf", "rb");
-  if (font_fp == nullptr) {
-    return;
-  }
-
-  fread(ttf_buffer, filesize + 1, 1, font_fp);
-  int font_offset = stbtt_GetFontOffsetForIndex(ttf_buffer, 0);
-  if (font_offset == -1) {
-    std::cout << "wrong font offset" << std::endl;
-    return;
-  }
-  stbtt_fontinfo font;
-  if (stbtt_InitFont(&font, ttf_buffer, font_offset) == 0) {
-    std::cout << "Failed to load font" << std::endl;
-    return;
-  }
-  float font_scale = stbtt_ScaleForPixelHeight(&font, 48.0f);
-
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  for (GLubyte c = 0; c < 128; c++) {
-    int w, h, xoff, yoff;
-    unsigned char *bitmap =
-        stbtt_GetCodepointBitmap(&font, 0, font_scale, c, &w, &h, &xoff, &yoff);
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE,
-                 bitmap);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    int advance_width;
-    stbtt_GetCodepointHMetrics(&font, c, &advance_width, 0);
-    Character character = {texture, glm::ivec2(w, h), glm::ivec2(xoff, -yoff),
-                           static_cast<GLuint>(advance_width * font_scale)};
-    this->_characters.insert(std::pair<GLchar, Character>(c, character));
-    stbtt_FreeBitmap(bitmap, NULL);
-  }
-
-  fclose(font_fp);
-  delete[] ttf_buffer;
-
-  glGenVertexArrays(1, &this->_vao);
-  glGenBuffers(1, &this->_vbo);
-
-  glBindVertexArray(this->_vao);
-  glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-
-  glEnableVertexAttribArray(0);
-
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
-}
-
-TextRenderer::~TextRenderer() {
-  for (auto &character : this->_characters) {
-    glDeleteTextures(1, &character.second.textureID);
-  }
-}
-
-void TextRenderer::renderText(float pos_x, float pos_y, float scale,
-                              std::string text, glm::vec3 color,
-                              glm::mat4 ortho) {
-  glUseProgram(_shader_id);
-  glUniformMatrix4fv(glGetUniformLocation(_shader_id, "proj"), 1, GL_FALSE,
-                     glm::value_ptr(ortho));
-  glUniform3fv(glGetUniformLocation(_shader_id, "text_color"), 1,
-               glm::value_ptr(color));
-  glActiveTexture(GL_TEXTURE0);
-  glBindVertexArray(this->_vao);
-  for (char &c : text) {
-    if (static_cast<int>(c) > 0 && static_cast<int>(c) < 128) {
-      Character ch = this->_characters[static_cast<int>(c)];
-      GLfloat xpos = pos_x + ch.bearing.x * scale;
-      GLfloat ypos = pos_y - (ch.size.y - ch.bearing.y) * scale;
-
-      GLfloat w = ch.size.x * scale;
-      GLfloat h = ch.size.y * scale;
-      GLfloat vertices[6][4] = {
-          {xpos, ypos + h, 0.0, 0.0},    {xpos, ypos, 0.0, 1.0},
-          {xpos + w, ypos, 1.0, 1.0},
-
-          {xpos, ypos + h, 0.0, 0.0},    {xpos + w, ypos, 1.0, 1.0},
-          {xpos + w, ypos + h, 1.0, 0.0}};
-      glBindTexture(GL_TEXTURE_2D, ch.textureID);
-      glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
-      glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
-      glDrawArrays(GL_TRIANGLES, 0, 6);
-      pos_x += ch.advanceOffset * scale;
-    }
-  }
-  glBindVertexArray(0);
-  glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 UiRenderer::UiRenderer(void) {

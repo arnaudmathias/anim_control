@@ -37,6 +37,7 @@ set(SOURCE_FILES
   src/game.cpp
   src/shader.cpp
   src/renderer.cpp
+  src/text_renderer.cpp
   src/camera.cpp
   src/vao.cpp
   src/texture.cpp
@@ -45,6 +46,7 @@ set(SOURCE_FILES
   src/model.cpp
   src/loader.cpp
   src/animation.cpp
+  src/animation_controller.cpp
   third-party/glad/glad.c)
 
 add_executable(anim_control ${SOURCE_FILES})

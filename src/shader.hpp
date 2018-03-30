@@ -5,7 +5,6 @@
 #include <fstream>
 #include <string>
 #include "env.hpp"
-#include "renderer.hpp"
 
 const int shader_types[3] = {GL_VERTEX_SHADER, GL_GEOMETRY_SHADER,
                              GL_FRAGMENT_SHADER};

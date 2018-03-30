@@ -7,6 +7,7 @@
 #include "env.hpp"
 #include "io.hpp"
 #include "shader.hpp"
+#include "text_renderer.hpp"
 #include "texture.hpp"
 #include "vao.hpp"
 
@@ -85,27 +86,6 @@ struct Attrib {
   Attrib(){};
 
   bool operator<(const struct Attrib& rhs) const;
-};
-
-class TextRenderer {
-  struct Character {
-    GLuint textureID;
-    glm::ivec2 size;
-    glm::ivec2 bearing;
-    GLuint advanceOffset;
-  };
-
- public:
-  TextRenderer(void);
-  ~TextRenderer();
-  void renderText(float pos_x, float pos_y, float scale, std::string text,
-                  glm::vec3 color, glm::mat4 ortho);
-
- private:
-  std::map<GLchar, Character> _characters;
-  GLuint _vao;
-  GLuint _vbo;
-  GLuint _shader_id;
 };
 
 class UiRenderer {

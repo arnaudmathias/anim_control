@@ -3,9 +3,9 @@ layout(location = 0) in vec4 vertex_pos; // vec2 pos | vec2 uv
 
 out vec2 frag_uv;
 
-uniform mat4 proj;
+uniform mat4 P;
 
 void main() {
-	gl_Position = proj * vec4(vertex_pos.xy, 0.0f, 1.0f);
+	gl_Position = P * vec4(vertex_pos.xy, 0.0f, 1.0f);
 	frag_uv = vertex_pos.zw;
 }
