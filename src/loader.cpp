@@ -22,6 +22,23 @@ glm::mat4 to_glm(aiMatrix4x4t<float> aimat) {
   return (mat);
 }
 
+Model* MeshLoader::loadModel(std::vector<glm::vec3> vertices) {
+  reset();
+  Model* model = new Model;
+  VAO* vao = new VAO(vertices);
+  model->renderAttrib.vaos.push_back(vao);
+  return (model);
+}
+
+Model* MeshLoader::loadModel(std::vector<glm::vec3> vertices,
+                             std::vector<unsigned int> indices) {
+  reset();
+  Model* model = new Model;
+  VAO* vao = new VAO(vertices, indices);
+  model->renderAttrib.vaos.push_back(vao);
+  return (model);
+}
+
 void MeshLoader::parseNodeHierarchy(const aiScene* scene, aiNode* node,
                                     std::queue<unsigned short>& node_stack) {
   // Bind each node to an ID during DFS traversal

@@ -28,6 +28,9 @@ class MeshLoader {
   ~MeshLoader(void);
   MeshLoader& operator=(MeshLoader const& rhs);
   Model* loadScene(std::string filename);
+  Model* loadModel(std::vector<glm::vec3> vertices);
+  Model* loadModel(std::vector<glm::vec3> vertices,
+                   std::vector<unsigned int> indices);
 
  private:
   Model* current_model;
