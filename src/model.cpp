@@ -105,13 +105,10 @@ void Model::animate(float timestamp) {
     }
   }
   skeleton->local_to_global();
-  for (unsigned short i = 0; i < skeleton->_joint_count; i++) {
-    skeleton->_global_poses[i] =
-        global_inverse * skeleton->_global_poses[i] * skeleton->_offsets[i];
-  }
   attrib.bones.resize(skeleton->_joint_count);
   for (unsigned short i = 0; i < skeleton->_joint_count; i++) {
-    attrib.bones[i] = skeleton->_global_poses[i];
+    attrib.bones[i] =
+        global_inverse * skeleton->_global_poses[i] * skeleton->_offsets[i];
   }
 }
 
@@ -124,11 +121,9 @@ void Model::updateAnimDebug() {
   std::vector<glm::vec3> positions;
   for (unsigned short i = 0; i < skeleton->_joint_count; i++) {
     const unsigned short parent_joint = skeleton->_hierarchy[i];
-    glm::mat4 bone_offset =
-        skeleton->_global_poses[i] * glm::inverse(skeleton->_offsets[i]);
+    glm::mat4 bone_offset = global_inverse * skeleton->_global_poses[i];
     glm::mat4 parent_bone_offset =
-        skeleton->_global_poses[parent_joint] *
-        glm::inverse(skeleton->_offsets[parent_joint]);
+        global_inverse * skeleton->_global_poses[parent_joint];
 
     glm::vec3 point_offset =
         glm::vec3(bone_offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
