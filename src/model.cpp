@@ -31,9 +31,9 @@ Skeleton& Skeleton::operator=(Skeleton const& rhs) {
     _offsets = new glm::mat4[_joint_count];
     std::memcpy(_hierarchy, rhs._hierarchy, sizeof(*_hierarchy) * _joint_count);
     std::memcpy(_local_poses, rhs._local_poses,
-                sizeof(*_local_poses) * _joint_count);
+		sizeof(*_local_poses) * _joint_count);
     std::memcpy(_global_poses, rhs._global_poses,
-                sizeof(*_global_poses) * _joint_count);
+		sizeof(*_global_poses) * _joint_count);
     std::memcpy(_offsets, rhs._offsets, sizeof(*_offsets) * _joint_count);
   }
   return (*this);
@@ -90,7 +90,7 @@ void Model::pushRenderAttribs(render::Renderer& renderer) {
 }
 
 void Model::pushDebugRenderAttribs(render::Renderer& renderer) {
-  updateAnimDebug();
+  updateAnimDebug(renderer);
   renderer.addAttrib(_animAttrib);
 }
 
@@ -108,11 +108,25 @@ void Model::animate(float timestamp) {
   attrib.bones.resize(skeleton->_joint_count);
   for (unsigned short i = 0; i < skeleton->_joint_count; i++) {
     attrib.bones[i] =
-        global_inverse * skeleton->_global_poses[i] * skeleton->_offsets[i];
+	global_inverse * skeleton->_global_poses[i] * skeleton->_offsets[i];
   }
 }
 
-void Model::updateAnimDebug() {
+/*
+glm::mat4 get_billboard(glm::vec3 position, glm::vec3 cameraPos,
+			glm::vec3 cameraUp) {
+  glm::vec3 look = glm::normalize(cameraPos - position);
+  glm::vec3 right = cross(cameraUp, look);
+  glm::vec3 up2 = cross(look, right);
+  glm::mat4 transform;
+  transform[0] = glm::vec4(right, 0);
+  transform[1] = glm::vec4(up2, 0);
+  transform[2] = glm::vec4(look, 0);
+  transform[3] = glm::vec4(position, 1.0);
+  return transform;
+}*/
+
+void Model::updateAnimDebug(const render::Renderer& renderer) {
   if (skeleton == nullptr) return;
   _animAttrib.state.primitiveMode = render::PrimitiveMode::Lines;
   _animAttrib.state.depthTestFunc = render::DepthTestFunc::Always;
@@ -123,12 +137,31 @@ void Model::updateAnimDebug() {
     const unsigned short parent_joint = skeleton->_hierarchy[i];
     glm::mat4 bone_offset = global_inverse * skeleton->_global_poses[i];
     glm::mat4 parent_bone_offset =
-        global_inverse * skeleton->_global_poses[parent_joint];
+	global_inverse * skeleton->_global_poses[parent_joint];
 
     glm::vec3 point_offset =
-        glm::vec3(bone_offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	glm::vec3(bone_offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
     glm::vec3 parent_point_offset =
-        glm::vec3(parent_bone_offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	glm::vec3(parent_bone_offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+    /* Experiment: draw bones as quad so we can control the thickness of lines
+     * The quad is facing the camera, but the multiplication by the model matrix
+     * in the shader give different thickness for each bones
+     * FIXME
+    glm::vec3 bone_dir = glm::normalize(parent_point_offset - point_offset);
+    glm::vec3 bone_axis = glm::cross(
+	bone_dir, glm::normalize(glm::vec3(-renderer.uniforms.view[2])));
+    bone_axis =
+	glm::vec3(glm::inverse(attrib.model) * glm::vec4(bone_axis, 1.0f));
+    bone_axis = glm::normalize(bone_axis);
+    bone_axis *= 0.01f;
+    glm::vec3 p0 = point_offset - bone_axis;
+    glm::vec3 p1 = point_offset + bone_axis;
+    glm::vec3 p2 = parent_point_offset - bone_axis;
+    glm::vec3 p3 = parent_point_offset + bone_axis;
+
+    const std::vector<glm::vec3> quad = {{p0}, {p1}, {p2}, {p2}, {p3}, {p0}};
+    positions.insert(positions.end(), quad.begin(), quad.end());*/
 
     positions.push_back(point_offset);
     positions.push_back(parent_point_offset);

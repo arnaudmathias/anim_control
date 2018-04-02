@@ -40,7 +40,7 @@ struct Model {
 
  private:
   void animate(float time_in_second);
-  void updateAnimDebug();
+  void updateAnimDebug(const render::Renderer& renderer);
   Shader* _debug_anim_shader = nullptr;
   render::Attrib _animAttrib;
 };
