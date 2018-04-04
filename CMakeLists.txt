@@ -39,6 +39,7 @@ set(SOURCE_FILES
   src/shader_cache.cpp
   src/renderer.cpp
   src/text_renderer.cpp
+  src/ui_renderer.cpp
   src/camera.cpp
   src/vao.cpp
   src/texture.cpp

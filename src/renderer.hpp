@@ -10,6 +10,7 @@
 #include "shader_cache.hpp"
 #include "text_renderer.hpp"
 #include "texture.hpp"
+#include "ui_renderer.hpp"
 #include "vao.hpp"
 
 class Shader;
@@ -87,22 +88,6 @@ struct Attrib {
   Attrib(){};
 
   bool operator<(const struct Attrib& rhs) const;
-};
-
-class UiRenderer {
- public:
-  UiRenderer(void);
-  UiRenderer(UiRenderer const& src);
-  ~UiRenderer(void);
-  UiRenderer& operator=(UiRenderer const& rhs);
-  void renderUI(std::string texture_name, float pos_x, float pos_y, float scale,
-                glm::mat4 ortho, bool centered);
-
- private:
-  GLuint _vao;
-  GLuint _vbo;
-  GLuint _shader_id;
-  std::unordered_map<std::string, Texture*> _texture_cache;
 };
 
 class Renderer {
