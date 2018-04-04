@@ -47,6 +47,7 @@ set(SOURCE_FILES
   src/io.cpp
   src/model.cpp
   src/loader.cpp
+  src/gameobject.cpp
   src/animation.cpp
   src/animation_controller.cpp
   third-party/glad/glad.c)

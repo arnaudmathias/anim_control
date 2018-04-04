@@ -107,13 +107,12 @@ Model* MeshLoader::loadScene(std::string filename) {
 
     parseBoneHierarchy(scene, scene->mRootNode);
     parseNodeHierarchy(scene, scene->mRootNode, node_queue);
-    current_model->node_ids = node_map;
 
     if (scene->HasAnimations()) {
       setupSkeleton(scene);
+      current_model->skeleton->node_ids = node_map;
       loadAnimations(scene);
     }
-
   } else {
     std::cerr << "Can't load " << filename << std::endl;
   }
@@ -256,7 +255,7 @@ void MeshLoader::setupSkeleton(const aiScene* scene) {
   current_model->skeleton =
       new Skeleton(static_cast<unsigned short>(hierarchy.size()));
   for (unsigned int i = 0; i < hierarchy.size(); i++) {
-    current_model->skeleton->_hierarchy[i] = hierarchy[i];
+    current_model->skeleton->hierarchy[i] = hierarchy[i];
   }
   // Populate skeleton with bone offset
   for (auto node_it : node_map) {
@@ -264,7 +263,7 @@ void MeshLoader::setupSkeleton(const aiScene* scene) {
     unsigned short node_index = node_it.second;
     auto bone_it = bone_map.find(node_name);
     if (bone_it != bone_map.end()) {
-      current_model->skeleton->_offsets[node_index] = bone_it->second.offset;
+      current_model->skeleton->offsets[node_index] = bone_it->second.offset;
     }
   }
 }

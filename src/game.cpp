@@ -5,16 +5,15 @@ Game::Game(void) {
       new Camera(glm::vec3(0.0f, 5.0f, -5.0f), glm::vec3(0.0f, 0.0f, 0.0f));
   MeshLoader loader;
   _models.push_back(loader.loadScene("anims/Walking.dae"));
-  _models.push_back(loader.loadScene("anims/Jumping.dae"));
+  //_models.push_back(loader.loadScene("anims/Jumping.dae"));
   std::vector<glm::vec3> floor_plan = {{0.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f},
 				       {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f},
 				       {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}};
-  glm::mat4 model = glm::translate(glm::vec3(-10.0f, -1.0f, -10.0f)) *
-		    glm::scale(glm::vec3(20.0f, 1.0f, 20.0f));
-  for (auto& pos : floor_plan) {
-    pos = glm::vec3(model * glm::vec4(pos, 1.0f));
-  }
   _models.push_back(loader.loadModel(floor_plan));
+  _entities.push_back(new GameObject(nullptr, _models[0]));
+  _entities.push_back(
+      new GameObject(nullptr, _models[1], glm::vec3(-10.0f, -1.0f, -10.0f),
+		     glm::vec3(0.0f), glm::vec3(20.0f, 1.0f, 20.0f)));
 }
 
 Game::Game(Game const& src) { *this = src; }
@@ -23,6 +22,9 @@ Game::~Game(void) {
   delete _camera;
   for (auto& model : _models) {
     delete model;
+  }
+  for (auto& go : _entities) {
+    delete go;
   }
 }
 
@@ -40,8 +42,8 @@ void Game::update(Env& env) {
     env.inputHandler.keys[GLFW_KEY_I] = false;
     _debugMode = !_debugMode;
   }
-  for (auto& model : _models) {
-    model->update(env.getAbsoluteTime());
+  for (auto& entity : _entities) {
+    entity->update(env);
   }
 }
 
@@ -52,10 +54,11 @@ void Game::render(const Env& env, render::Renderer& renderer) {
   renderer.uniforms.proj = _camera->proj;
   renderer.uniforms.view_proj = _camera->proj * _camera->view;
 
-  for (auto& model : _models) {
-    model->pushRenderAttribs(renderer);
+  for (auto& entity : _entities) {
+    renderer.addAttrib(entity->getRenderAttrib());
     if (_debugMode) {
-      model->pushDebugRenderAttribs(renderer);
+      entity->updateAnimDebug(renderer);
+      renderer.addAttrib(entity->getDebugRenderAttrib());
     }
   }
   renderer.draw();

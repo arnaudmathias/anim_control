@@ -14,3 +14,9 @@ AnimationController& AnimationController::operator=(
   }
   return (*this);
 }
+
+void AnimationController::changeAnimation(enum AnimationState state) {
+  AState new_state = {};
+  new_state.state = state;
+  new_state.weight = 1.0f;
+}

@@ -16,6 +16,13 @@ struct AnimChannel {
   std::vector<AnimKey<glm::vec3>> scale_keys;
 };
 
+struct AnimData {
+  std::string name;
+  float duration_in_ticks;
+  float ticks_per_second;
+  std::unordered_map<std::string, AnimChannel> channels;
+};
+
 class Animation {
  public:
   Animation(std::string anim_name, double duration, double ticks_per_second);
