@@ -3,8 +3,7 @@
 #include "stb_truetype.h"
 namespace render {
 
-TextRenderer::TextRenderer(void)
-    : _shader("shaders/text.vert", "shaders/text.frag") {
+TextRenderer::TextRenderer(void) {
   loadFont("fonts/minecraft.ttf");
   std::vector<glm::vec4> dummy(6);
   _vao = new VAO(dummy);
@@ -79,8 +78,10 @@ void TextRenderer::update(const Env &env) {
                       static_cast<float>(env.height));
 }
 
-void TextRenderer::renderText(float pos_x, float pos_y, float scale,
-                              std::string text, TextProperties properties) {
+void TextRenderer::renderText(Shader *shader, float pos_x, float pos_y,
+                              float scale, std::string text,
+                              TextProperties properties) {
+  if (shader == nullptr) return;
   Font font;
 
   if (properties.font_filename.empty()) {
@@ -98,16 +99,16 @@ void TextRenderer::renderText(float pos_x, float pos_y, float scale,
         std::cerr << "Cannot load " << properties.font_filename
                   << " , fallback on default font" << std::endl;
         properties.font_filename = "";
-        renderText(pos_x, pos_y, scale, text, properties);
+        renderText(shader, pos_x, pos_y, scale, text, properties);
         return;
       }
       font = font_it->second;
     }
   }
-  glUseProgram(_shader.id);
-  glUniformMatrix4fv(glGetUniformLocation(_shader.id, "P"), 1, GL_FALSE,
+  glUseProgram(shader->id);
+  glUniformMatrix4fv(glGetUniformLocation(shader->id, "P"), 1, GL_FALSE,
                      glm::value_ptr(_ortho));
-  glUniform3fv(glGetUniformLocation(_shader.id, "color"), 1,
+  glUniform3fv(glGetUniformLocation(shader->id, "color"), 1,
                glm::value_ptr(properties.color));
   glActiveTexture(GL_TEXTURE0);
   glBindVertexArray(_vao->vao);

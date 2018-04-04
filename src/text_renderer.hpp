@@ -32,14 +32,13 @@ class TextRenderer {
 
   void loadFont(std::string font_filename, float size = 48.0f);
   void update(const Env &env);
-  void renderText(float pos_x, float pos_y, float scale, std::string text,
-                  TextProperties properties);
+  void renderText(Shader *shader, float pos_x, float pos_y, float scale,
+                  std::string text, TextProperties properties);
 
  private:
   glm::mat4 _ortho;
   std::map<std::string, Font> _font_map;
   // std::map<GLchar, Character> _characters;
-  Shader _shader;
   VAO *_vao = nullptr;
 };
 }  // namespace render

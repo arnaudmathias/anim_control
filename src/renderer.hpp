@@ -7,6 +7,7 @@
 #include "env.hpp"
 #include "io.hpp"
 #include "shader.hpp"
+#include "shader_cache.hpp"
 #include "text_renderer.hpp"
 #include "texture.hpp"
 #include "vao.hpp"
@@ -78,7 +79,7 @@ struct Uniforms {
 
 struct Attrib {
   glm::mat4 model;
-  Shader* shader = nullptr;
+  std::string shader_key = "";
   std::vector<VAO*> vaos;
   std::vector<glm::mat4> bones;
 
@@ -141,9 +142,7 @@ class Renderer {
   int _height = 0;
   Texture* _cubeMapTexture = nullptr;
   VAO* _cubeMapVao = nullptr;
-  Shader* _cubeMapShader = nullptr;
-  Shader* _shader = nullptr;
-  Shader* _billboardShader = nullptr;
+  ShaderCache _shaderCache;
 
   RenderState _state;
 

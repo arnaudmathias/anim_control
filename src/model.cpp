@@ -48,13 +48,11 @@ void Skeleton::local_to_global() {
 }
 
 Model::Model(enum ModelType type) : _type(type) {
-  // TODO: This is stupid, I really need a shader cache or somethign similar
   if (_type == ModelType::Animated) {
-    _debug_anim_shader =
-	new Shader("shaders/anim_debug.vert", "shaders/anim_debug.frag");
+    attrib.shader_key = "anim";
+    _animAttrib.shader_key = "anim_debug";
   } else if (_type == ModelType::Void) {
-    attrib.shader =
-	new Shader("shaders/void_model.vert", "shaders/void_model.frag");
+    attrib.shader_key = "void_model";
   }
 }
 
@@ -123,7 +121,6 @@ void Model::updateAnimDebug(const render::Renderer& renderer) {
   _animAttrib.state.primitiveMode = render::PrimitiveMode::Lines;
   _animAttrib.state.depthTestFunc = render::DepthTestFunc::Always;
   _animAttrib.model = attrib.model;
-  _animAttrib.shader = _debug_anim_shader;
   std::vector<glm::vec3> positions;
   for (unsigned short i = 0; i < skeleton->_joint_count; i++) {
     const unsigned short parent_joint = skeleton->_hierarchy[i];

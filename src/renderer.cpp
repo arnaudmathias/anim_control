@@ -2,18 +2,12 @@
 
 namespace render {
 
-Renderer::Renderer(int width, int height) : _width(width), _height(height) {
-  _shader = new Shader("shaders/anim.vert", "shaders/anim.frag");
-  _billboardShader =
-      new Shader("shaders/billboard.vert", "shaders/billboard.frag");
-}
+Renderer::Renderer(int width, int height) : _width(width), _height(height) {}
 
 Renderer::Renderer(Renderer const &src) { *this = src; }
 
 Renderer::~Renderer(void) {
-  delete _shader;
   delete _cubeMapVao;
-  delete _cubeMapShader;
   delete _cubeMapTexture;
 }
 
@@ -35,7 +29,8 @@ void Renderer::renderText(float pos_x, float pos_y, float scale,
 
   TextProperties prop = {};
   prop.color = color;
-  _textRenderer.renderText(pos_x, pos_y, scale, text, prop);
+  _textRenderer.renderText(_shaderCache.getShader("text"), pos_x, pos_y, scale,
+                           text, prop);
 
   setState(backup_state);
 }
@@ -79,7 +74,6 @@ void Renderer::updateUniforms(const Attrib &attrib, const int shader_id) {
 }
 
 void Renderer::draw() {
-  _shader->reload();
   RenderState backup_state = _state;
   // std::sort(_renderAttribs.begin(), _renderAttribs.end());
   int shader_id = -1;
@@ -87,14 +81,13 @@ void Renderer::draw() {
   glViewport(0, 0, _width, _height);
   switchDepthTestState(true);
   for (const auto &attrib : this->_attribs) {
-    setState(attrib.state);
-    if (attrib.shader == nullptr) {
-      switchShader(_shader->id, shader_id);
-      updateUniforms(attrib, _shader->id);
-    } else {
-      switchShader(attrib.shader->id, shader_id);
-      updateUniforms(attrib, attrib.shader->id);
+    Shader *shader = _shaderCache.getShader(attrib.shader_key);
+    if (shader == nullptr) {
+      continue;
     }
+    setState(attrib.state);
+    switchShader(shader->id, shader_id);
+    updateUniforms(attrib, shader->id);
     GLenum mode = getGLRenderMode(attrib.state.primitiveMode);
     for (const auto &vao : attrib.vaos) {
       if (vao != nullptr) {
@@ -110,18 +103,21 @@ void Renderer::draw() {
   }
 
   if (this->_cubeMapVao != nullptr) {
-    switchDepthTestFunc(DepthTestFunc::LessEqual);
-    switchShader(this->_cubeMapShader->id, shader_id);
-    setUniform(glGetUniformLocation(shader_id, "P"), this->uniforms.proj);
-    setUniform(glGetUniformLocation(shader_id, "V"),
-               glm::mat4(glm::mat3(this->uniforms.view)));
-    setUniform(glGetUniformLocation(shader_id, "skybox"), 0);
-    glBindVertexArray(this->_cubeMapVao->vao);
-    if (this->_cubeMapTexture) {
-      glBindTexture(GL_TEXTURE_CUBE_MAP, this->_cubeMapTexture->id);
+    Shader *shader = _shaderCache.getShader("skybox");
+    if (shader != nullptr) {
+      switchDepthTestFunc(DepthTestFunc::LessEqual);
+      switchShader(shader->id, shader_id);
+      setUniform(glGetUniformLocation(shader_id, "P"), this->uniforms.proj);
+      setUniform(glGetUniformLocation(shader_id, "V"),
+                 glm::mat4(glm::mat3(this->uniforms.view)));
+      setUniform(glGetUniformLocation(shader_id, "skybox"), 0);
+      glBindVertexArray(this->_cubeMapVao->vao);
+      if (this->_cubeMapTexture) {
+        glBindTexture(GL_TEXTURE_CUBE_MAP, this->_cubeMapTexture->id);
+      }
+      glDrawArrays(GL_TRIANGLES, 0, 36);
+      switchDepthTestFunc(DepthTestFunc::Less);
     }
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    switchDepthTestFunc(DepthTestFunc::Less);
   }
   setState(_state);
   glBindVertexArray(0);
@@ -133,6 +129,7 @@ void Renderer::update(const Env &env) {
     _height = env.height;
   }
   _textRenderer.update(env);
+  _shaderCache.update();
 }
 
 void Renderer::flushAttribs() { this->_attribs.clear(); }
@@ -161,7 +158,6 @@ void Renderer::loadCubeMap(std::string vertex_sha, std::string fragment_sha,
   } catch (std::runtime_error &e) {
     std::cerr << e.what() << std::endl;
   }
-  this->_cubeMapShader = new Shader(vertex_sha, fragment_sha);
   this->_cubeMapVao = new VAO(skyboxVertices);
 }
 
@@ -260,9 +256,6 @@ bool Attrib::operator<(const struct Attrib &rhs) const {
 }
 
 UiRenderer::UiRenderer(void) {
-  Shader shader("shaders/ui.vert", "shaders/ui.frag");
-  this->_shader_id = shader.id;
-
   glGenVertexArrays(1, &this->_vao);
   glGenBuffers(1, &this->_vbo);
 

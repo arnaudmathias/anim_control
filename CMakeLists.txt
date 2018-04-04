@@ -36,6 +36,7 @@ set(SOURCE_FILES
   src/env.cpp
   src/game.cpp
   src/shader.cpp
+  src/shader_cache.cpp
   src/renderer.cpp
   src/text_renderer.cpp
   src/camera.cpp

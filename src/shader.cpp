@@ -14,13 +14,12 @@ Shader &Shader::operator=(Shader const &rhs) {
   return (*this);
 }
 
-Shader::Shader(std::string shader1, std::string shader2, std::string shader3)
-    : id(-1) {
+Shader::Shader(std::string shader) : id(-1) {
   std::array<GLuint, 3> shader_ids;
   GLint err = -1;
-  _shaders[0].filename = shader1;
-  _shaders[1].filename = shader2;
-  _shaders[2].filename = shader3;
+  _shaders[0].filename = shader + shader_extensions[0];
+  _shaders[1].filename = shader + shader_extensions[1];
+  _shaders[2].filename = shader + shader_extensions[2];
   for (int i = 0; i < 3; i++) {
     shader_ids[i] = loadShader(_shaders[i].filename);
     _shaders[i].last_modification =
@@ -37,8 +36,12 @@ Shader::Shader(std::string shader1, std::string shader2, std::string shader3)
   }
 }
 
-GLuint Shader::loadShader(std::string shader_filename) {
+GLuint Shader::loadShader(std::string &shader_filename) {
   int shader_type = 0;
+  if (file_exists(shader_filename) == false) {
+    shader_filename = "";
+    return (0);
+  }
   for (int i = 0; i < 3; i++) {
     if (shader_filename.find(shader_extensions[i]) != std::string::npos) {
       shader_type = shader_types[i];
@@ -154,6 +157,14 @@ void printShaderError(GLuint shader, std::string file_name) {
   index = 0;
   glGetShaderInfoLog(shader, max_length, &index, log);
   std::cerr << "Cannot compile shader: " << file_name << "\n" << log;
+}
+
+bool file_exists(std::string filename) {
+  struct stat st = {0};
+  if (stat(filename.c_str(), &st) != -1) {
+    return (true);
+  }
+  return (false);
 }
 
 std::time_t getLastModificationTime(std::string filename) {
