@@ -2,16 +2,19 @@
 
 Game::Game(void) {
   _camera =
-      new Camera(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+      new Camera(glm::vec3(0.0f, 5.0f, -5.0f), glm::vec3(0.0f, 0.0f, 0.0f));
   MeshLoader loader;
   _models.push_back(loader.loadScene("anims/Walking.dae"));
   _models.push_back(loader.loadScene("anims/Jumping.dae"));
-  _models.push_back(loader.loadModel({{0.0f, 1.0f, 1.0f},
-				      {1.0f, 1.0f, 1.0f},
-				      {1.0f, 1.0f, 0.0f},
-				      {1.0f, 1.0f, 0.0f},
-				      {0.0f, 1.0f, 0.0f},
-				      {0.0f, 1.0f, 1.0f}}));
+  std::vector<glm::vec3> floor_plan = {{0.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f},
+				       {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f},
+				       {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}};
+  glm::mat4 model = glm::translate(glm::vec3(-10.0f, -1.0f, -10.0f)) *
+		    glm::scale(glm::vec3(20.0f, 1.0f, 20.0f));
+  for (auto& pos : floor_plan) {
+    pos = glm::vec3(model * glm::vec4(pos, 1.0f));
+  }
+  _models.push_back(loader.loadModel(floor_plan));
 }
 
 Game::Game(Game const& src) { *this = src; }

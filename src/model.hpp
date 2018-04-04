@@ -6,6 +6,8 @@
 #include "animation.hpp"
 #include "renderer.hpp"
 
+enum class ModelType { Static, Void, Animated };
+
 class Skeleton {
  public:
   Skeleton(unsigned short joint_count);
@@ -23,7 +25,7 @@ class Skeleton {
 };
 
 struct Model {
-  Model(void);
+  Model(enum ModelType type);
   Model(Model const& src);
   Model& operator=(Model const& rhs);
   ~Model();
@@ -39,8 +41,11 @@ struct Model {
   glm::mat4 global_inverse;
 
  private:
+  Model(void) = default;
   void animate(float time_in_second);
   void updateAnimDebug(const render::Renderer& renderer);
+  enum ModelType _type;
   Shader* _debug_anim_shader = nullptr;
+  Shader* _void_shader = nullptr;
   render::Attrib _animAttrib;
 };

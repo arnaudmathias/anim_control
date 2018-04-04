@@ -47,9 +47,15 @@ void Skeleton::local_to_global() {
   }
 }
 
-Model::Model(void) {
-  _debug_anim_shader =
-      new Shader("shaders/anim_debug.vert", "shaders/anim_debug.frag");
+Model::Model(enum ModelType type) : _type(type) {
+  // TODO: This is stupid, I really need a shader cache or somethign similar
+  if (_type == ModelType::Animated) {
+    _debug_anim_shader =
+	new Shader("shaders/anim_debug.vert", "shaders/anim_debug.frag");
+  } else if (_type == ModelType::Void) {
+    attrib.shader =
+	new Shader("shaders/void_model.vert", "shaders/void_model.frag");
+  }
 }
 
 Model::Model(Model const& rhs) { *this = rhs; }
@@ -111,20 +117,6 @@ void Model::animate(float timestamp) {
 	global_inverse * skeleton->_global_poses[i] * skeleton->_offsets[i];
   }
 }
-
-/*
-glm::mat4 get_billboard(glm::vec3 position, glm::vec3 cameraPos,
-			glm::vec3 cameraUp) {
-  glm::vec3 look = glm::normalize(cameraPos - position);
-  glm::vec3 right = cross(cameraUp, look);
-  glm::vec3 up2 = cross(look, right);
-  glm::mat4 transform;
-  transform[0] = glm::vec4(right, 0);
-  transform[1] = glm::vec4(up2, 0);
-  transform[2] = glm::vec4(look, 0);
-  transform[3] = glm::vec4(position, 1.0);
-  return transform;
-}*/
 
 void Model::updateAnimDebug(const render::Renderer& renderer) {
   if (skeleton == nullptr) return;

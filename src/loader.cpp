@@ -24,18 +24,16 @@ glm::mat4 to_glm(aiMatrix4x4t<float> aimat) {
 
 Model* MeshLoader::loadModel(std::vector<glm::vec3> vertices) {
   reset();
-  Model* model = new Model;
+  Model* model = new Model(ModelType::Void);
   VAO* vao = new VAO(vertices);
   model->attrib.vaos.push_back(vao);
-  model->attrib.shader =
-      new Shader("shaders/anim_debug.vert", "shaders/anim_debug.frag");
   return (model);
 }
 
 Model* MeshLoader::loadModel(std::vector<glm::vec3> vertices,
                              std::vector<unsigned int> indices) {
   reset();
-  Model* model = new Model;
+  Model* model = new Model(ModelType::Void);
   VAO* vao = new VAO(vertices, indices);
   model->attrib.vaos.push_back(vao);
   return (model);
@@ -92,13 +90,18 @@ void MeshLoader::processHierarchy(const aiScene* scene, aiNode* node,
 
 Model* MeshLoader::loadScene(std::string filename) {
   reset();
-  Model* model = new Model;
-  current_model = model;
   Assimp::Importer importer;
   const aiScene* scene = importer.ReadFile(
       filename, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
                     aiProcess_FlipUVs);
+  Model* model = nullptr;
   if (scene) {
+    enum ModelType type = ModelType::Static;
+    if (scene->HasAnimations()) {
+      type = ModelType::Animated;
+    }
+    model = new Model(type);
+    current_model = model;
     std::queue<unsigned short> node_queue;
     current_model->global_inverse = to_glm(scene->mRootNode->mTransformation);
 
