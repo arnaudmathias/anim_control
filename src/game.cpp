@@ -5,15 +5,23 @@ Game::Game(void) {
       new Camera(glm::vec3(0.0f, 5.0f, -5.0f), glm::vec3(0.0f, 0.0f, 0.0f));
   MeshLoader loader;
   _models.push_back(loader.loadScene("anims/Walking.dae"));
-  //_models.push_back(loader.loadScene("anims/Jumping.dae"));
+  _models.push_back(loader.loadScene("anims/Jumping.dae"));
   std::vector<glm::vec3> floor_plan = {{0.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f},
-				       {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f},
-				       {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}};
+                                       {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f},
+                                       {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}};
   _models.push_back(loader.loadModel(floor_plan));
   _entities.push_back(new GameObject(nullptr, _models[0]));
   _entities.push_back(
-      new GameObject(nullptr, _models[1], glm::vec3(-10.0f, -1.0f, -10.0f),
-		     glm::vec3(0.0f), glm::vec3(20.0f, 1.0f, 20.0f)));
+      new GameObject(nullptr, _models[2], glm::vec3(-10.0f, -1.0f, -10.0f),
+                     glm::vec3(0.0f), glm::vec3(20.0f, 1.0f, 20.0f)));
+  // Extract animations data from models
+  for (auto& model : _models) {
+    for (auto it = model->animations.begin(); it != model->animations.end();
+         it++) {
+      _animations.emplace(it->first, it->second);
+    }
+    model->animations.clear();
+  }
 }
 
 Game::Game(Game const& src) { *this = src; }
@@ -44,6 +52,8 @@ void Game::update(Env& env) {
   }
   for (auto& entity : _entities) {
     entity->update(env);
+    entity->updateAnimation(env.getAbsoluteTime(),
+                            &_animations.begin()->second);
   }
 }
 
@@ -76,12 +86,12 @@ std::string float_to_string(float f, int prec) {
 }
 
 void Game::print_debug_info(const Env& env, render::Renderer& renderer,
-			    Camera& camera) {
+                            Camera& camera) {
   float fheight = static_cast<float>(renderer.getScreenHeight());
   float fwidth = static_cast<float>(renderer.getScreenWidth());
   renderer.renderText(10.0f, fheight - 25.0f, 0.35f,
-		      "x: " + float_to_string(camera.pos.x, 2) +
-			  " y: " + float_to_string(camera.pos.y, 2) +
-			  " z: " + float_to_string(camera.pos.z, 2),
-		      glm::vec3(1.0f, 1.0f, 1.0f));
+                      "x: " + float_to_string(camera.pos.x, 2) +
+                          " y: " + float_to_string(camera.pos.y, 2) +
+                          " z: " + float_to_string(camera.pos.z, 2),
+                      glm::vec3(1.0f, 1.0f, 1.0f));
 }

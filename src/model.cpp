@@ -31,9 +31,9 @@ Skeleton& Skeleton::operator=(Skeleton const& rhs) {
     offsets = new glm::mat4[joint_count];
     std::memcpy(hierarchy, rhs.hierarchy, sizeof(*hierarchy) * joint_count);
     std::memcpy(local_poses, rhs.local_poses,
-		sizeof(*local_poses) * joint_count);
+                sizeof(*local_poses) * joint_count);
     std::memcpy(global_poses, rhs.global_poses,
-		sizeof(*global_poses) * joint_count);
+                sizeof(*global_poses) * joint_count);
     std::memcpy(offsets, rhs.offsets, sizeof(*offsets) * joint_count);
     node_ids = rhs.node_ids;
   }
@@ -73,16 +73,17 @@ Model::~Model(void) {
   for (auto& vao : _animAttrib.vaos) {
     delete vao;
   }
+  /*
   for (auto it = animations.begin(); it != animations.end(); it++) {
     delete it->second;
-  }
+  }*/
   if (skeleton != nullptr) {
     delete skeleton;
   }
 }
 
 void Model::animate(float timestamp) {
-  if (skeleton == nullptr) return;
+  /*if (skeleton == nullptr) return;
   for (auto anim_it : animations) {
     Animation* anim = anim_it.second;
     for (auto node_it : skeleton->node_ids) {
@@ -95,8 +96,8 @@ void Model::animate(float timestamp) {
   attrib.bones.resize(skeleton->joint_count);
   for (unsigned short i = 0; i < skeleton->joint_count; i++) {
     attrib.bones[i] =
-	global_inverse * skeleton->global_poses[i] * skeleton->offsets[i];
-  }
+        global_inverse * skeleton->global_poses[i] * skeleton->offsets[i];
+  }*/
 }
 
 void Model::updateAnimDebug(const render::Renderer& renderer) {
@@ -109,12 +110,12 @@ void Model::updateAnimDebug(const render::Renderer& renderer) {
     const unsigned short parent_joint = skeleton->hierarchy[i];
     glm::mat4 bone_offset = global_inverse * skeleton->global_poses[i];
     glm::mat4 parent_bone_offset =
-	global_inverse * skeleton->global_poses[parent_joint];
+        global_inverse * skeleton->global_poses[parent_joint];
 
     glm::vec3 point_offset =
-	glm::vec3(bone_offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        glm::vec3(bone_offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
     glm::vec3 parent_point_offset =
-	glm::vec3(parent_bone_offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        glm::vec3(parent_bone_offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
     /* Experiment: draw bones as quad so we can control the thickness of lines
      * The quad is facing the camera, but the multiplication by the model matrix
@@ -122,9 +123,9 @@ void Model::updateAnimDebug(const render::Renderer& renderer) {
      * FIXME
     glm::vec3 bone_dir = glm::normalize(parent_point_offset - point_offset);
     glm::vec3 bone_axis = glm::cross(
-	bone_dir, glm::normalize(glm::vec3(-renderer.uniforms.view[2])));
+        bone_dir, glm::normalize(glm::vec3(-renderer.uniforms.view[2])));
     bone_axis =
-	glm::vec3(glm::inverse(attrib.model) * glm::vec4(bone_axis, 1.0f));
+        glm::vec3(glm::inverse(attrib.model) * glm::vec4(bone_axis, 1.0f));
     bone_axis = glm::normalize(bone_axis);
     bone_axis *= 0.01f;
     glm::vec3 p0 = point_offset - bone_axis;

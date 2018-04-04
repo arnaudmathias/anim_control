@@ -32,11 +32,7 @@ struct Model {
   Model& operator=(Model const& rhs);
   ~Model();
 
-  /*void pushRenderAttribs(render::Renderer& renderer);
-  void pushDebugRenderAttribs(render::Renderer& renderer);*/
-
-  std::unordered_map<std::string, Animation*> animations;
-  // std::unordered_map<std::string, unsigned short> node_ids;
+  std::unordered_map<std::string, AnimData> animations;
   render::Attrib attrib;
   Skeleton* skeleton = nullptr;
   glm::mat4 global_inverse;

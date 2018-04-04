@@ -21,7 +21,7 @@ class Game {
   Camera* _camera;
   std::vector<Model*> _models;
   std::vector<GameObject*> _entities;
-  std::unordered_map<std::string, AnimData*> _animations;
+  std::unordered_map<std::string, AnimData> _animations;
 
   void print_debug_info(const Env& env, render::Renderer& renderer,
                         Camera& camera);

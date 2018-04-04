@@ -1,41 +1,12 @@
 #include "animation.hpp"
 
-Animation::Animation(std::string anim_name, double duration,
-                     double ticks_per_second)
-    : _name(anim_name),
-      _animation_start(0.0f),
-      _duration(duration),
-      _ticks_per_second(ticks_per_second) {
-  if (_ticks_per_second == 0.0) {
-    _ticks_per_second = 25.0f;
-  }
-}
-
-Animation::Animation(Animation const& src) { *this = src; }
-
-Animation::~Animation(void) {}
-
-Animation& Animation::operator=(Animation const& rhs) {
-  if (this != &rhs) {
-    channels = rhs.channels;
-    _name = rhs._name;
-    _animation_start = rhs._animation_start;
-    _duration = rhs._duration;
-    _ticks_per_second = rhs._ticks_per_second;
-  }
-  return (*this);
-}
-
-glm::mat4 Animation::animate(std::string key, float timestamp) {
-  if (_animation_start == 0.0f || timestamp - _animation_start >= _duration) {
-    _animation_start = timestamp;
-  }
-  float time_since_animation_start = timestamp - _animation_start;
-  float time_in_tick = time_since_animation_start * _ticks_per_second;
-  float animation_time = fmod(time_in_tick, _duration);
+glm::mat4 animate(AnimData* data, std::string key, float timestamp) {
+  float time_since_animation_start = timestamp - 0.0f;
+  float time_in_tick = time_since_animation_start * data->ticks_per_second;
+  float animation_time = fmod(time_in_tick, data->duration_in_ticks);
   glm::mat4 res = glm::mat4(1.0f);
-  auto channel_it = channels.find(key);
-  if (channel_it == channels.end()) {
+  auto channel_it = data->channels.find(key);
+  if (channel_it == data->channels.end()) {
     return (res);
   }
   glm::vec3 interpolated_position =
@@ -52,16 +23,7 @@ glm::mat4 Animation::animate(std::string key, float timestamp) {
   res = mat_translation * mat_rotation * mat_scale;
   return (res);
 }
-
-bool Animation::addChannel(std::string key, const AnimChannel& channel) {
-  auto res = channels.emplace(key, channel);
-  if (res.second) {
-    // TODO: ensure keys are sorted by timestamp
-  }
-  return (res.second);
-}
-
-glm::vec3 Animation::interpolatePosition(
+glm::vec3 interpolatePosition(
     float time_in_seconds, const std::vector<AnimKey<glm::vec3>>& positions) {
   glm::vec3 position = glm::vec3(0.0f);
 
@@ -77,7 +39,7 @@ glm::vec3 Animation::interpolatePosition(
   return (position);
 }
 
-glm::quat Animation::interpolateRotation(
+glm::quat interpolateRotation(
     float time_in_seconds, const std::vector<AnimKey<glm::quat>>& rotations) {
   glm::quat rotation = glm::quat();
 
@@ -89,8 +51,8 @@ glm::quat Animation::interpolateRotation(
   return (rotation);
 }
 
-glm::vec3 Animation::interpolateScaling(
-    float time_in_seconds, const std::vector<AnimKey<glm::vec3>>& scalings) {
+glm::vec3 interpolateScaling(float time_in_seconds,
+                             const std::vector<AnimKey<glm::vec3>>& scalings) {
   glm::vec3 scaling = glm::vec3(1.0f);
 
   if (scalings.empty()) {
@@ -102,8 +64,8 @@ glm::vec3 Animation::interpolateScaling(
 }
 
 template <typename T>
-unsigned int Animation::nearest_index(float time_in_seconds,
-                                      const std::vector<AnimKey<T>>& data) {
+unsigned int nearest_index(float time_in_seconds,
+                           const std::vector<AnimKey<T>>& data) {
   if (data.size() == 0) {
     return (0);
   }

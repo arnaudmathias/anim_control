@@ -53,7 +53,7 @@ GameObject& GameObject::operator=(GameObject const& rhs) {
 }
 
 void GameObject::update(const Env& env) {
-  animate(env.getAbsoluteTime());
+  // animate(env.getAbsoluteTime());
   /*if (inputComponent != nullptr) {
     inputComponent->update(*this, world, inputHandler, this->physicsComponent);
   }
@@ -72,20 +72,14 @@ glm::mat4 GameObject::getWorldTransform() {
   return (worldTransform);
 }
 
-void GameObject::animate(float timestamp) {
+void GameObject::updateAnimation(float timestamp, AnimData* data) {
   if (_skeleton == nullptr) return;
-  /*
-  for (auto anim_it : animations) {
-    Animation* anim = anim_it.second;
-    for (auto node_it : node_ids) {
-      std::string node_name = node_it.first;
-      unsigned short bone_index = node_it.second;
-      _skeleton->_local_poses[bone_index] = anim->animate(node_name, timestamp);
-    }
-  }*/
-  for (unsigned short i = 0; i < _skeleton->joint_count; i++) {
-    _skeleton->local_poses[i] = glm::mat4(1.0f);
+  for (auto node_it : _skeleton->node_ids) {
+    std::string node_name = node_it.first;
+    unsigned short bone_index = node_it.second;
+    _skeleton->local_poses[bone_index] = animate(data, node_name, timestamp);
   }
+
   _skeleton->local_to_global();
   _renderAttrib.bones.resize(_skeleton->joint_count);
   for (unsigned short i = 0; i < _skeleton->joint_count; i++) {

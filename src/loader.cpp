@@ -207,8 +207,12 @@ void MeshLoader::loadAnimations(const aiScene* scene) {
     if (anim_name.empty()) {
       anim_name = std::to_string(i);
     }
-    Animation* animation =
-        new Animation(anim_name, anim->mDuration, anim->mTicksPerSecond);
+    AnimData anim_data;
+    anim_data.name = anim_name;
+    anim_data.duration_in_ticks = static_cast<float>(anim->mDuration);
+    anim_data.ticks_per_second = static_cast<float>(anim->mTicksPerSecond);
+    /*Animation* animation =
+        new Animation(anim_name, anim->mDuration, anim->mTicksPerSecond);*/
     for (unsigned int j = 0; j < anim->mNumChannels; j++) {
       AnimChannel channel;
       const aiNodeAnim* node_anim = anim->mChannels[j];
@@ -242,9 +246,10 @@ void MeshLoader::loadAnimations(const aiScene* scene) {
              node_anim->mScalingKeys[k].mValue.z}};
         channel.position_keys.push_back(scaling_key);
       }
-      animation->addChannel(channel_key, channel);
+      anim_data.channels.emplace(channel_key, channel);
+      // animation->addChannel(channel_key, channel);
     }
-    current_model->animations.emplace(anim_name, animation);
+    current_model->animations.emplace(anim_name, anim_data);
   }
 }
 
