@@ -210,9 +210,15 @@ void PhysicsComponent::update(GameObject& go, float dt) {
   if (dist > 0.01f) {
     glm::vec3 dir = glm::normalize(target_position - go.transform.position);
     go.transform.position += dir * dt * 2.5f * speed;
-    glm::mat4 rot = glm::lookAt(go.transform.position, target_position,
-                                glm::vec3(0.0f, 1.0f, 0.0f));
-    go.transform.rotation = glm::eulerAngles(glm::quat_cast(rot));
+    if (go.inputComponent) {
+      if (go.inputComponent->directions.empty() == false) {
+        float rot[4] = {0.0f, glm::radians(90.0f), glm::radians(180.0f),
+                        glm::radians(270.f)};
+        unsigned int direction_index =
+            static_cast<unsigned int>(go.inputComponent->directions.front());
+        go.transform.rotation = glm::vec3(0.0f, rot[direction_index], 0.0f);
+      }
+    }
   } else {
     reached_target = true;
     go.transform.position = glm::round(go.transform.position);

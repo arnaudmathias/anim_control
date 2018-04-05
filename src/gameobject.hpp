@@ -18,7 +18,6 @@ struct Transform {
 
   glm::mat4 toModelMatrix() {
     glm::mat4 mat_translation = glm::translate(position);
-    // glm::mat4 mat_rotation = glm::mat4_cast(rotation);
     glm::mat4 mat_rotation =
         glm::eulerAngleYXZ(rotation.y, rotation.x, rotation.z);
     glm::mat4 mat_scale = glm::scale(scale);

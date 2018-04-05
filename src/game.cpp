@@ -55,8 +55,6 @@ void Game::update(Env& env) {
   }
   for (auto& entity : _entities) {
     entity->update(env, &_animations.begin()->second);
-    /*entity->updateAnimation(env.getAbsoluteTime(),
-                            &_animations.begin()->second);*/
   }
 }
 
@@ -70,7 +68,6 @@ void Game::render(const Env& env, render::Renderer& renderer) {
   for (auto& entity : _entities) {
     renderer.addAttrib(entity->getRenderAttrib());
     if (_debugMode) {
-      // entity->updateAnimDebug(renderer);
       renderer.addAttrib(entity->getDebugRenderAttrib());
     }
   }
