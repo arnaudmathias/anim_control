@@ -103,7 +103,6 @@ Model* MeshLoader::loadScene(std::string filename) {
     model = new Model(type);
     current_model = model;
     std::queue<unsigned short> node_queue;
-    current_model->global_inverse = to_glm(scene->mRootNode->mTransformation);
 
     parseBoneHierarchy(scene, scene->mRootNode);
     parseNodeHierarchy(scene, scene->mRootNode, node_queue);
@@ -259,6 +258,7 @@ void MeshLoader::setupSkeleton(const aiScene* scene) {
 
   current_model->skeleton =
       new Skeleton(static_cast<unsigned short>(hierarchy.size()));
+  current_model->skeleton->global_inverse = to_glm(scene->mRootNode->mTransformation);
   for (unsigned int i = 0; i < hierarchy.size(); i++) {
     current_model->skeleton->hierarchy[i] = hierarchy[i];
   }

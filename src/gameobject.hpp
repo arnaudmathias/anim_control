@@ -54,7 +54,6 @@ class GameObject {
   render::Attrib _renderAttrib;
 
   Skeleton* _skeleton = nullptr;
-  glm::mat4 _global_inverse;
   render::Attrib _animAttrib;
 };
 

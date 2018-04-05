@@ -21,7 +21,8 @@ class Skeleton {
   glm::mat4* local_poses = nullptr;
   glm::mat4* global_poses = nullptr;
   glm::mat4* offsets = nullptr;
-  unsigned short joint_count;
+  unsigned short joint_count = 0;
+  glm::mat4 global_inverse = glm::mat4(1.0f);
 
   std::unordered_map<std::string, unsigned short> node_ids;
 };
@@ -35,7 +36,6 @@ struct Model {
   std::unordered_map<std::string, AnimData> animations;
   render::Attrib attrib;
   Skeleton* skeleton = nullptr;
-  glm::mat4 global_inverse;
 
  private:
   Model(void) = default;

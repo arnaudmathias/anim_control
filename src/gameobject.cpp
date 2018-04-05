@@ -12,7 +12,6 @@ GameObject::GameObject(GameObject* parent, Model* model, glm::vec3 pos,
   _renderAttrib.state = model->attrib.state;
   if (model->skeleton != nullptr) {
     _skeleton = new Skeleton(*model->skeleton);
-    _global_inverse = model->global_inverse;
   }
 
   transform.position = pos;
@@ -84,7 +83,7 @@ void GameObject::updateAnimation(float timestamp, AnimData* data) {
   _renderAttrib.bones.resize(_skeleton->joint_count);
   for (unsigned short i = 0; i < _skeleton->joint_count; i++) {
     _renderAttrib.bones[i] =
-        _global_inverse * _skeleton->global_poses[i] * _skeleton->offsets[i];
+        _skeleton->global_inverse * _skeleton->global_poses[i] * _skeleton->offsets[i];
   }
 }
 
@@ -93,12 +92,13 @@ void GameObject::updateAnimDebug(const render::Renderer& renderer) {
   _animAttrib.state.primitiveMode = render::PrimitiveMode::Lines;
   _animAttrib.state.depthTestFunc = render::DepthTestFunc::Always;
   _animAttrib.model = _renderAttrib.model;
+  _animAttrib.shader_key = "anim_debug";
   std::vector<glm::vec3> positions;
   for (unsigned short i = 0; i < _skeleton->joint_count; i++) {
     const unsigned short parent_joint = _skeleton->hierarchy[i];
-    glm::mat4 bone_offset = _global_inverse * _skeleton->global_poses[i];
+    glm::mat4 bone_offset = _skeleton->global_inverse * _skeleton->global_poses[i];
     glm::mat4 parent_bone_offset =
-        _global_inverse * _skeleton->global_poses[parent_joint];
+        _skeleton->global_inverse * _skeleton->global_poses[parent_joint];
 
     glm::vec3 point_offset =
         glm::vec3(bone_offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
