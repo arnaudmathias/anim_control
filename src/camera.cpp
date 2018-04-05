@@ -50,48 +50,53 @@ void Camera::update(Env &env, float deltaTime) {
     width = env.width;
     height = env.height;
   }
-  if (env.inputHandler.keys[GLFW_KEY_LEFT_SHIFT]) {
-    speed = 20.0f;
-  } else {
-    speed = 5.0f;
-  }
-  if (env.inputHandler.keys[GLFW_KEY_UP] || env.inputHandler.keys[GLFW_KEY_W]) {
-    glm::vec3 tmp = dir * speed * deltaTime;
-    pos = pos + tmp;
-  }
-  if (env.inputHandler.keys[GLFW_KEY_DOWN] ||
-      env.inputHandler.keys[GLFW_KEY_S]) {
-    glm::vec3 tmp = dir * speed * deltaTime;
-    pos = pos - tmp;
-  }
-  if (env.inputHandler.keys[GLFW_KEY_RIGHT] ||
-      env.inputHandler.keys[GLFW_KEY_D]) {
-    glm::vec3 right = glm::cross(up, dir);
-    glm::vec3 tmp = right * speed * deltaTime;
-    pos = pos - tmp;
-  }
-  if (env.inputHandler.keys[GLFW_KEY_LEFT] ||
-      env.inputHandler.keys[GLFW_KEY_A]) {
-    glm::vec3 right = glm::cross(up, dir);
-    glm::vec3 tmp = right * speed * deltaTime;
-    pos = pos + tmp;
-  }
-  if (env.inputHandler.mousex != mouseXpos ||
-      env.inputHandler.mousey != mouseYpos) {
-    if (mouseInit) {
-      oldMouseXpos = mouseXpos;
-      oldMouseYpos = mouseYpos;
+  if (env.inputHandler.keybrDisabled == false) {
+    if (env.inputHandler.keys[GLFW_KEY_LEFT_SHIFT]) {
+      speed = 20.0f;
     } else {
-      oldMouseXpos = env.inputHandler.mousex;
-      oldMouseYpos = env.inputHandler.mousey;
-      mouseInit = true;
+      speed = 5.0f;
     }
-    mouseXpos = env.inputHandler.mousex;
-    mouseYpos = env.inputHandler.mousey;
-    if (env.has_resized) {
-      env.has_resized = false;
-    } else {
-      this->mouseMoved = true;
+    if (env.inputHandler.keys[GLFW_KEY_UP] ||
+        env.inputHandler.keys[GLFW_KEY_W]) {
+      glm::vec3 tmp = dir * speed * deltaTime;
+      pos = pos + tmp;
+    }
+    if (env.inputHandler.keys[GLFW_KEY_DOWN] ||
+        env.inputHandler.keys[GLFW_KEY_S]) {
+      glm::vec3 tmp = dir * speed * deltaTime;
+      pos = pos - tmp;
+    }
+    if (env.inputHandler.keys[GLFW_KEY_RIGHT] ||
+        env.inputHandler.keys[GLFW_KEY_D]) {
+      glm::vec3 right = glm::cross(up, dir);
+      glm::vec3 tmp = right * speed * deltaTime;
+      pos = pos - tmp;
+    }
+    if (env.inputHandler.keys[GLFW_KEY_LEFT] ||
+        env.inputHandler.keys[GLFW_KEY_A]) {
+      glm::vec3 right = glm::cross(up, dir);
+      glm::vec3 tmp = right * speed * deltaTime;
+      pos = pos + tmp;
+    }
+  }
+  if (env.inputHandler.mouseDisabled == false) {
+    if (env.inputHandler.mousex != mouseXpos ||
+        env.inputHandler.mousey != mouseYpos) {
+      if (mouseInit) {
+        oldMouseXpos = mouseXpos;
+        oldMouseYpos = mouseYpos;
+      } else {
+        oldMouseXpos = env.inputHandler.mousex;
+        oldMouseYpos = env.inputHandler.mousey;
+        mouseInit = true;
+      }
+      mouseXpos = env.inputHandler.mousex;
+      mouseYpos = env.inputHandler.mousey;
+      if (env.has_resized) {
+        env.has_resized = false;
+      } else {
+        this->mouseMoved = true;
+      }
     }
   }
   updateMatrix(deltaTime);

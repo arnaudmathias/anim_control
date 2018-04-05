@@ -6,14 +6,17 @@ Game::Game(void) {
   MeshLoader loader;
   _models.push_back(loader.loadScene("anims/Walking.dae"));
   _models.push_back(loader.loadScene("anims/Jumping.dae"));
-  std::vector<glm::vec3> floor_plan = {{0.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f},
-                                       {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f},
-                                       {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}};
+  std::vector<glm::vec3> floor_plan = {{0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f},
+                                       {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+                                       {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
   _models.push_back(loader.loadModel(floor_plan));
   _entities.push_back(new GameObject(nullptr, _models[0]));
+
+  _player_handle = _entities[0];
+  _player_handle->setAsContralable();
   _entities.push_back(
-      new GameObject(nullptr, _models[2], glm::vec3(-10.0f, -1.0f, -10.0f),
-                     glm::vec3(0.0f), glm::vec3(20.0f, 1.0f, 20.0f)));
+      new GameObject(nullptr, _models[2], glm::vec3(-25.0f, 0.0f, -25.0f),
+                     glm::vec3(0.0f), glm::vec3(50.0f, 1.0f, 50.0f)));
   // Extract animations data from models
   for (auto& model : _models) {
     for (auto it = model->animations.begin(); it != model->animations.end();
@@ -51,9 +54,9 @@ void Game::update(Env& env) {
     _debugMode = !_debugMode;
   }
   for (auto& entity : _entities) {
-    entity->update(env);
-    entity->updateAnimation(env.getAbsoluteTime(),
-                            &_animations.begin()->second);
+    entity->update(env, &_animations.begin()->second);
+    /*entity->updateAnimation(env.getAbsoluteTime(),
+                            &_animations.begin()->second);*/
   }
 }
 
@@ -67,7 +70,7 @@ void Game::render(const Env& env, render::Renderer& renderer) {
   for (auto& entity : _entities) {
     renderer.addAttrib(entity->getRenderAttrib());
     if (_debugMode) {
-      entity->updateAnimDebug(renderer);
+      // entity->updateAnimDebug(renderer);
       renderer.addAttrib(entity->getDebugRenderAttrib());
     }
   }

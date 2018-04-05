@@ -4,6 +4,8 @@
 
 int main(int argc, char **argv) {
   Env env(1280, 720);
+  env.inputHandler.mouseDisabled = true;
+  env.inputHandler.keybrDisabled = true;
   render::Renderer renderer(env.width, env.height);
   renderer.loadCubeMap(
       "shaders/skybox.vert", "shaders/skybox.frag",

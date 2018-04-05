@@ -21,6 +21,7 @@ class Game {
   Camera* _camera;
   std::vector<Model*> _models;
   std::vector<GameObject*> _entities;
+  GameObject* _player_handle;  // Only an handle, DO NOT DELETE
   std::unordered_map<std::string, AnimData> _animations;
 
   void print_debug_info(const Env& env, render::Renderer& renderer,
