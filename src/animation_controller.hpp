@@ -6,13 +6,14 @@
 #include "animation.hpp"
 #include "model.hpp"
 
-enum class AnimationState { Idle, Walking };
+enum class AnimNodeState { Increase, Decrease, Constant };
 
 struct AState {
   AnimData* data = nullptr;
-  enum AnimationState state = AnimationState::Idle;
-  float weight = 0.0f;
+  float weight = 0.5f;
+  float blend_speed = 0.5f;
   float animation_start = 0.0f;
+  AnimNodeState node_state;
 };
 
 class AnimationController {
@@ -22,9 +23,9 @@ class AnimationController {
   ~AnimationController(void);
   AnimationController& operator=(AnimationController const& rhs);
 
-  void changeAnimation(enum AnimationState state);
-  void update(float t, Skeleton* skeleton,
-              const std::unordered_map<std::string, AnimData>& animations);
+  void changeAnimation(float t, AnimData* data, float start_weight,
+                       AnimNodeState node_state);
+  void update(float t, Skeleton* skeleton);
   glm::mat4 blend(float t, std::string node_name);
 
  private:

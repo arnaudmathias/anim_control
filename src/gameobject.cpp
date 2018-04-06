@@ -2,8 +2,9 @@
 
 GameObject::GameObject(void){};
 
-GameObject::GameObject(GameObject* parent, Model* model, glm::vec3 pos,
-                       glm::vec3 rot, glm::vec3 sca)
+GameObject::GameObject(GameObject* parent, Model* model,
+                       std::map<std::string, AnimData>* animation_ptr,
+                       glm::vec3 pos, glm::vec3 rot, glm::vec3 sca)
     : parent(parent) {
   if (model != nullptr) {
     _renderAttrib.model = model->attrib.model;
@@ -12,9 +13,11 @@ GameObject::GameObject(GameObject* parent, Model* model, glm::vec3 pos,
     _renderAttrib.bones = model->attrib.bones;
     _renderAttrib.state = model->attrib.state;
     if (model->skeleton != nullptr) {
-      animationComponent =
-          std::unique_ptr<AnimationComponent>(new AnimationComponent());
+      animationComponent = std::unique_ptr<AnimationComponent>(
+          new AnimationComponent(animation_ptr));
       animationComponent->skeleton = Skeleton(*model->skeleton);
+      animationComponent->changeAnimation(0.0f,
+                                          AnimationComponent::State::Idle);
     }
 
     transform.position = pos;
@@ -48,8 +51,7 @@ GameObject& GameObject::operator=(GameObject const& rhs) {
   return (*this);
 }
 
-void GameObject::update(
-    Env& env, const std::unordered_map<std::string, AnimData> animations) {
+void GameObject::update(Env& env) {
   if (inputComponent) {
     inputComponent->update(*this, env.inputHandler);
   }
@@ -60,8 +62,7 @@ void GameObject::update(
   _renderAttrib.model = getWorldTransform();
   if (animationComponent) {
     // animationComponent->update();
-    animationComponent->updateBones(env.getAbsoluteTime(), _renderAttrib.bones,
-                                    animations);
+    animationComponent->updateBones(env.getAbsoluteTime(), _renderAttrib.bones);
     animationComponent->updateAnimDebugAttrib(_renderAttrib.model);
   }
 }
@@ -90,7 +91,9 @@ void GameObject::setAsContralable() {
   physicsComponent = std::unique_ptr<PhysicsComponent>(new PhysicsComponent());
 }
 
-AnimationComponent::AnimationComponent(void) {}
+AnimationComponent::AnimationComponent(
+    std::map<std::string, AnimData>* anim_ptr)
+    : _animations_ptr(anim_ptr) {}
 
 AnimationComponent::AnimationComponent(AnimationComponent const& src) {
   *this = src;
@@ -105,16 +108,9 @@ AnimationComponent& AnimationComponent::operator=(
   return (*this);
 }
 
-void AnimationComponent::updateBones(
-    float timestamp, std::vector<glm::mat4>& bones,
-    const std::unordered_map<std::string, AnimData>& animations) {
-  /*
-  for (auto node_it : skeleton.node_ids) {
-    std::string node_name = node_it.first;
-    unsigned short bone_index = node_it.second;
-    skeleton.local_poses[bone_index] = animate(data, node_name, timestamp);
-  }*/
-  controller.update(timestamp, &skeleton, animations);
+void AnimationComponent::updateBones(float timestamp,
+                                     std::vector<glm::mat4>& bones) {
+  controller.update(timestamp, &skeleton);
 
   skeleton.local_to_global();
   bones.resize(skeleton.joint_count);
@@ -148,6 +144,22 @@ void AnimationComponent::updateAnimDebugAttrib(glm::mat4 parent_model) {
     skel_attrib.vaos[0]->update(positions);
   } else {
     skel_attrib.vaos.push_back(new VAO(positions));
+  }
+}
+
+void AnimationComponent::changeAnimation(float timestamp, State state) {
+  std::string anim_names[2] = {"anims/Idle.dae", "anims/Walking.dae"};
+  if (_animations_ptr->empty()) {
+    return;
+  }
+  unsigned int state_index = static_cast<unsigned int>(state);
+  AnimData* data = nullptr;
+  auto anim_it = _animations_ptr->find(anim_names[state_index]);
+  if (anim_it != _animations_ptr->end()) {
+    data = &anim_it->second;
+  }
+  if (data != nullptr) {
+    controller.changeAnimation(timestamp, data, 0.0f, AnimNodeState::Increase);
   }
 }
 
@@ -193,6 +205,10 @@ void InputComponent::update(GameObject& go, InputHandler& inputHandler) {
   if (go.physicsComponent) {
     if (directions.empty() == false &&
         go.physicsComponent->state == PhysicsComponent::State::Idling) {
+      if (go.animationComponent) {
+        go.animationComponent->changeAnimation(
+            0.0f, AnimationComponent::State::Walking);
+      }
       unsigned int direction_index =
           static_cast<unsigned int>(directions.front());
       go.physicsComponent->state = PhysicsComponent::State::Moving;
@@ -207,6 +223,11 @@ void InputComponent::update(GameObject& go, InputHandler& inputHandler) {
       go.physicsComponent->start_rotation = go.transform.rotation;
       go.physicsComponent->target_rotation = rot[direction_index];
       go.physicsComponent->rotation_factor = 0.0f;
+    } else {
+      if (go.animationComponent) {
+        go.animationComponent->changeAnimation(0.0f,
+                                               AnimationComponent::State::Idle);
+      }
     }
   }
 }

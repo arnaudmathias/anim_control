@@ -10,14 +10,7 @@ Game::Game(void) {
                                        {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
                                        {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
   _models.push_back(loader.loadModel(floor_plan));
-  _entities.push_back(new GameObject(nullptr, _models[0]));
 
-  _player_handle = _entities[0];
-  _player_handle->setAsContralable();
-  _entities.push_back(
-      new GameObject(nullptr, _models[2], glm::vec3(-25.0f, 0.0f, -25.0f),
-                     glm::vec3(0.0f), glm::vec3(50.0f, 1.0f, 50.0f)));
-  // Extract animations data from models
   for (auto& model : _models) {
     for (auto it = model->animations.begin(); it != model->animations.end();
          it++) {
@@ -25,6 +18,15 @@ Game::Game(void) {
     }
     model->animations.clear();
   }
+
+  _entities.push_back(new GameObject(nullptr, _models[0], &_animations));
+
+  _player_handle = _entities[0];
+  _player_handle->setAsContralable();
+  _entities.push_back(new GameObject(
+      nullptr, _models[2], &_animations, glm::vec3(-25.0f, 0.0f, -25.0f),
+      glm::vec3(0.0f), glm::vec3(50.0f, 1.0f, 50.0f)));
+  // Extract animations data from models
 }
 
 Game::Game(Game const& src) { *this = src; }
@@ -54,7 +56,7 @@ void Game::update(Env& env) {
     _debugMode = !_debugMode;
   }
   for (auto& entity : _entities) {
-    entity->update(env, _animations);
+    entity->update(env);
   }
 }
 

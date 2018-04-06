@@ -1,7 +1,5 @@
 #include "animation_controller.hpp"
 
-std::string animations_state_files[2] = {"anims/Idle.dae", "anims/Walking.dae"};
-
 AnimationController::AnimationController(void) {}
 
 AnimationController::AnimationController(AnimationController const& src) {
@@ -17,17 +15,46 @@ AnimationController& AnimationController::operator=(
   return (*this);
 }
 
-void AnimationController::changeAnimation(enum AnimationState state) {
-  AState new_state = {};
-  new_state.state = state;
-  new_state.weight = 1.0f;
+void AnimationController::changeAnimation(float t, AnimData* data,
+                                          float start_weight,
+                                          AnimNodeState node_state) {
+  AState state = {};
+  state.data = data;
+  state.weight = start_weight;
+  state.animation_start = t;
+  state.node_state = node_state;
+  _states.push_back(state);
 }
 
-void AnimationController::update(
-    float t, Skeleton* skeleton,
-    const std::unordered_map<std::string, AnimData>& animations) {
+void AnimationController::update(float t, Skeleton* skeleton) {
   if (skeleton == nullptr) {
     return;
+  }
+  _states.erase(
+      std::remove_if(_states.begin(), _states.end(),
+                     [](AState& state) {
+                       if (state.weight == 0.0f &&
+                           state.node_state == AnimNodeState::Constant) {
+                         return (true);
+                       }
+                       return (false);
+                     }),
+      _states.end());
+  for (auto& state : _states) {
+    if (state.weight < 1.0f && state.node_state == AnimNodeState::Increase) {
+      state.weight += 0.01f;
+    }
+    if (state.weight > 0.0f && state.node_state == AnimNodeState::Decrease) {
+      state.weight -= 0.01f;
+    }
+    if (state.weight >= 1.0f) {
+      state.weight = 1.0f;
+      state.node_state = AnimNodeState::Constant;
+    }
+    if (state.weight <= 0.0f) {
+      state.weight = 0.0f;
+      state.node_state = AnimNodeState::Constant;
+    }
   }
   for (auto node_it : skeleton->node_ids) {
     std::string node_name = node_it.first;
@@ -65,6 +92,9 @@ glm::mat4 AnimationController::blend(float t, std::string node_name) {
     positions[i] = interpolatePosition(atimes[i], it->second.position_keys);
     rotations[i] = interpolateRotation(atimes[i], it->second.rotation_keys);
     scalings[i] = interpolateScaling(atimes[i], it->second.scale_keys);
+  }
+  if (_states[0].weight < 1.0f) {
+    _states[0].weight += 0.01f;
   }
   glm::vec3 interpolated_position = positions[0];
   glm::quat interpolated_rotation = rotations[0];

@@ -34,6 +34,7 @@ struct Transform {
 class GameObject {
  public:
   GameObject(GameObject* parent, Model* model,
+             std::map<std::string, AnimData>* anim_ptr,
              glm::vec3 pos = glm::vec3(0.0f, 0.0f, 0.0f),
              glm::vec3 vec3 = glm::vec3(0.0f, 0.0f, 0.0f),
              glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f));
@@ -43,8 +44,7 @@ class GameObject {
 
   const render::Attrib getRenderAttrib() const;
   const render::Attrib getDebugRenderAttrib() const;
-  void update(Env& env,
-              const std::unordered_map<std::string, AnimData> animations);
+  void update(Env& env);
   glm::mat4 getWorldTransform();
 
   void setAsContralable();
@@ -66,17 +66,22 @@ class GameObject {
 
 class AnimationComponent {
  public:
-  AnimationComponent(void);
+  enum class State { Idle, Walking };
+  AnimationComponent(std::map<std::string, AnimData>* anim_ptr);
   AnimationComponent(AnimationComponent const& src);
   ~AnimationComponent(void);
   AnimationComponent& operator=(AnimationComponent const& rhs);
-  void updateBones(float timestamp, std::vector<glm::mat4>& bones,
-                   const std::unordered_map<std::string, AnimData>& animations);
+  void updateBones(float timestamp, std::vector<glm::mat4>& bones);
   void updateAnimDebugAttrib(glm::mat4 parent_model);
+  void changeAnimation(float timestamp, State state);
 
   AnimationController controller;
   Skeleton skeleton;
   render::Attrib skel_attrib;
+
+ private:
+  std::map<std::string, AnimData>* _animations_ptr = nullptr;
+  AnimationComponent(void) = default;
 };
 
 class InputComponent {
