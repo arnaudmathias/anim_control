@@ -159,6 +159,14 @@ InputComponent& InputComponent::operator=(InputComponent const& rhs) {
 }
 
 void InputComponent::update(GameObject& go, InputHandler& inputHandler) {
+  glm::vec3 dir_vec[4] = {{0.0f, 0.0f, 1.0f},
+                          {1.0f, 0.0f, 0.0f},
+                          {0.0f, 0.0f, -1.0f},
+                          {-1.0f, 0.0f, 0.0f}};
+  glm::quat rot[4] = {glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+                      glm::quat(0.707f, 0.0f, 0.707f, 0.0f),
+                      glm::quat(0.0f, 0.0f, 1.0f, 0.0f),
+                      glm::quat(-0.707f, 0.0f, 0.707f, 0.0f)};
   glm::vec3 new_pos = go.transform.position;
   InputDirection direction = InputDirection::None;
   if (inputHandler.keys[GLFW_KEY_A]) {
@@ -178,16 +186,22 @@ void InputComponent::update(GameObject& go, InputHandler& inputHandler) {
     directions.push(direction);
   }
   if (go.physicsComponent) {
-    if (directions.empty() == false && go.physicsComponent->reached_target) {
-      go.physicsComponent->reached_target = false;
-      glm::vec3 dir_vec[4] = {{0.0f, 0.0f, 1.0f},
-                              {1.0f, 0.0f, 0.0f},
-                              {0.0f, 0.0f, -1.0f},
-                              {-1.0f, 0.0f, 0.0f}};
+    if (directions.empty() == false &&
+        go.physicsComponent->state == PhysicsComponent::State::Idling) {
       unsigned int direction_index =
           static_cast<unsigned int>(directions.front());
+      go.physicsComponent->state = PhysicsComponent::State::Moving;
+      if (glm::angle(go.transform.rotation, rot[direction_index]) == 0.0f) {
+        // Already facing the right way, just need to move to target
+        go.physicsComponent->state = PhysicsComponent::State::Moving;
+      } else {
+        go.physicsComponent->state = PhysicsComponent::State::Rotating;
+      }
       go.physicsComponent->target_position =
           go.transform.position + dir_vec[direction_index];
+      go.physicsComponent->start_rotation = go.transform.rotation;
+      go.physicsComponent->target_rotation = rot[direction_index];
+      go.physicsComponent->rotation_factor = 0.0f;
     }
   }
 }
@@ -206,26 +220,33 @@ PhysicsComponent& PhysicsComponent::operator=(PhysicsComponent const& rhs) {
 }
 
 void PhysicsComponent::update(GameObject& go, float dt) {
-  float dist = glm::distance(go.transform.position, target_position);
-  if (dist > 0.01f) {
-    glm::vec3 dir = glm::normalize(target_position - go.transform.position);
-    go.transform.position += dir * dt * 2.5f * speed;
-    if (go.inputComponent) {
-      if (go.inputComponent->directions.empty() == false) {
-        float rot[4] = {0.0f, glm::radians(90.0f), glm::radians(180.0f),
-                        glm::radians(270.f)};
-        unsigned int direction_index =
-            static_cast<unsigned int>(go.inputComponent->directions.front());
-        go.transform.rotation = glm::vec3(0.0f, rot[direction_index], 0.0f);
-      }
+  if (state == State::Rotating) {
+    float angle = fmod(glm::angle(go.transform.rotation, target_rotation),
+                       glm::pi<float>());
+    if (angle > 0.1f && angle < glm::pi<float>() - 0.1f) {
+      go.transform.rotation =
+          glm::slerp(start_rotation, target_rotation, rotation_factor);
+      rotation_factor += 5.0f * dt;
+      rotation_factor = glm::clamp(rotation_factor, 0.0f, 1.0f);
+    } else {
+      go.transform.rotation = target_rotation;
+      state = State::Moving;
     }
-  } else {
-    reached_target = true;
-    go.transform.position = glm::round(go.transform.position);
-    target_position = go.transform.position;
-    if (go.inputComponent) {
-      if (go.inputComponent->directions.empty() == false) {
-        go.inputComponent->directions.pop();
+  }
+  if (state == State::Moving) {
+    float dist = glm::distance(go.transform.position, target_position);
+    if (dist > 0.01f) {
+      glm::vec3 dir = glm::normalize(target_position - go.transform.position);
+      go.transform.position += dir * dt * 2.5f * speed;
+    } else {
+      if (state == State::Moving) {
+        state = State::Idling;
+      }
+      go.transform.position = target_position;
+      if (go.inputComponent) {
+        if (go.inputComponent->directions.empty() == false) {
+          go.inputComponent->directions.pop();
+        }
       }
     }
   }

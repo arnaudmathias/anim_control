@@ -13,13 +13,14 @@ enum class InputDirection { North, East, South, West, None };
 
 struct Transform {
   glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
-  glm::vec3 rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+  glm::quat rotation = glm::vec3(0.0f, 0.0f, 0.0f);
   glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
   glm::mat4 toModelMatrix() {
     glm::mat4 mat_translation = glm::translate(position);
-    glm::mat4 mat_rotation =
-        glm::eulerAngleYXZ(rotation.y, rotation.x, rotation.z);
+    glm::mat4 mat_rotation = glm::mat4_cast(rotation);
+    /*glm::mat4 mat_rotation =
+        glm::eulerAngleYXZ(rotation.y, rotation.x, rotation.z);*/
     glm::mat4 mat_scale = glm::scale(scale);
     _model = mat_translation * mat_rotation * mat_scale;
     return (_model);
@@ -79,7 +80,7 @@ class InputComponent {
  public:
   InputComponent(void);
   InputComponent(InputComponent const& src);
-  virtual ~InputComponent(void);
+  ~InputComponent(void);
   InputComponent& operator=(InputComponent const& rhs);
   void update(GameObject& gameObject, InputHandler& inputHandler);
 
@@ -88,14 +89,18 @@ class InputComponent {
 
 class PhysicsComponent {
  public:
+  enum class State { Idling, Rotating, Moving };
   PhysicsComponent(void);
   PhysicsComponent(PhysicsComponent const& src);
-  virtual ~PhysicsComponent(void);
+  ~PhysicsComponent(void);
   PhysicsComponent& operator=(PhysicsComponent const& rhs);
   void update(GameObject& gameObject, float dt);
 
   glm::vec3 velocity = glm::vec3(0.0f, 0.0f, 0.0f);
   glm::vec3 target_position = glm::vec3(0.0f, 0.0f, 0.0f);
-  bool reached_target = true;
+  glm::quat start_rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+  glm::quat target_rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+  float rotation_factor = 0.0f;
   float speed = 1.0f;
+  enum State state = State::Idling;
 };

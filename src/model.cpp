@@ -74,10 +74,6 @@ Model::~Model(void) {
   for (auto& vao : _animAttrib.vaos) {
     delete vao;
   }
-  /*
-  for (auto it = animations.begin(); it != animations.end(); it++) {
-    delete it->second;
-  }*/
   if (skeleton != nullptr) {
     delete skeleton;
   }
