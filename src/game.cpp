@@ -4,8 +4,8 @@ Game::Game(void) {
   _camera =
       new Camera(glm::vec3(0.0f, 5.0f, -5.0f), glm::vec3(0.0f, 0.0f, 0.0f));
   MeshLoader loader;
+  _models.push_back(loader.loadScene("anims/Idle.dae"));
   _models.push_back(loader.loadScene("anims/Walking.dae"));
-  _models.push_back(loader.loadScene("anims/Jumping.dae"));
   std::vector<glm::vec3> floor_plan = {{0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f},
                                        {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
                                        {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
@@ -54,7 +54,7 @@ void Game::update(Env& env) {
     _debugMode = !_debugMode;
   }
   for (auto& entity : _entities) {
-    entity->update(env, &_animations.begin()->second);
+    entity->update(env, _animations);
   }
 }
 

@@ -5,20 +5,22 @@ GameObject::GameObject(void){};
 GameObject::GameObject(GameObject* parent, Model* model, glm::vec3 pos,
                        glm::vec3 rot, glm::vec3 sca)
     : parent(parent) {
-  _renderAttrib.model = model->attrib.model;
-  _renderAttrib.shader_key = model->attrib.shader_key;
-  _renderAttrib.vaos = model->attrib.vaos;
-  _renderAttrib.bones = model->attrib.bones;
-  _renderAttrib.state = model->attrib.state;
-  if (model->skeleton != nullptr) {
-    animationComponent =
-        std::unique_ptr<AnimationComponent>(new AnimationComponent());
-    animationComponent->skeleton = Skeleton(*model->skeleton);
-  }
+  if (model != nullptr) {
+    _renderAttrib.model = model->attrib.model;
+    _renderAttrib.shader_key = model->attrib.shader_key;
+    _renderAttrib.vaos = model->attrib.vaos;
+    _renderAttrib.bones = model->attrib.bones;
+    _renderAttrib.state = model->attrib.state;
+    if (model->skeleton != nullptr) {
+      animationComponent =
+          std::unique_ptr<AnimationComponent>(new AnimationComponent());
+      animationComponent->skeleton = Skeleton(*model->skeleton);
+    }
 
-  transform.position = pos;
-  transform.rotation = rot;
-  transform.scale = sca;
+    transform.position = pos;
+    transform.rotation = rot;
+    transform.scale = sca;
+  }
 }
 
 GameObject::GameObject(GameObject const& src) { *this = src; }
@@ -46,7 +48,8 @@ GameObject& GameObject::operator=(GameObject const& rhs) {
   return (*this);
 }
 
-void GameObject::update(Env& env, AnimData* data) {
+void GameObject::update(
+    Env& env, const std::unordered_map<std::string, AnimData> animations) {
   if (inputComponent) {
     inputComponent->update(*this, env.inputHandler);
   }
@@ -58,7 +61,7 @@ void GameObject::update(Env& env, AnimData* data) {
   if (animationComponent) {
     // animationComponent->update();
     animationComponent->updateBones(env.getAbsoluteTime(), _renderAttrib.bones,
-                                    data);
+                                    animations);
     animationComponent->updateAnimDebugAttrib(_renderAttrib.model);
   }
 }
@@ -102,14 +105,16 @@ AnimationComponent& AnimationComponent::operator=(
   return (*this);
 }
 
-void AnimationComponent::updateBones(float timestamp,
-                                     std::vector<glm::mat4>& bones,
-                                     AnimData* data) {
+void AnimationComponent::updateBones(
+    float timestamp, std::vector<glm::mat4>& bones,
+    const std::unordered_map<std::string, AnimData>& animations) {
+  /*
   for (auto node_it : skeleton.node_ids) {
     std::string node_name = node_it.first;
     unsigned short bone_index = node_it.second;
     skeleton.local_poses[bone_index] = animate(data, node_name, timestamp);
-  }
+  }*/
+  controller.update(timestamp, &skeleton, animations);
 
   skeleton.local_to_global();
   bones.resize(skeleton.joint_count);

@@ -1,5 +1,13 @@
 #include "animation.hpp"
 
+float get_animation_time(float timestamp, float animation_start,
+                         float ticks_per_second, float ticks_duration) {
+  float time_since_animation_start = timestamp - 0.0f;
+  float time_in_tick = time_since_animation_start * ticks_per_second;
+  float animation_time = fmod(time_in_tick, ticks_duration);
+  return (animation_time);
+}
+
 glm::mat4 animate(AnimData* data, std::string key, float timestamp) {
   float time_since_animation_start = timestamp - 0.0f;
   float time_in_tick = time_since_animation_start * data->ticks_per_second;

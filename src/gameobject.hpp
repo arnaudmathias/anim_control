@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <queue>
+#include "animation_controller.hpp"
 #include "model.hpp"
 #include "renderer.hpp"
 
@@ -42,7 +43,8 @@ class GameObject {
 
   const render::Attrib getRenderAttrib() const;
   const render::Attrib getDebugRenderAttrib() const;
-  void update(Env& env, AnimData* data);
+  void update(Env& env,
+              const std::unordered_map<std::string, AnimData> animations);
   glm::mat4 getWorldTransform();
 
   void setAsContralable();
@@ -69,9 +71,10 @@ class AnimationComponent {
   ~AnimationComponent(void);
   AnimationComponent& operator=(AnimationComponent const& rhs);
   void updateBones(float timestamp, std::vector<glm::mat4>& bones,
-                   AnimData* data);
+                   const std::unordered_map<std::string, AnimData>& animations);
   void updateAnimDebugAttrib(glm::mat4 parent_model);
 
+  AnimationController controller;
   Skeleton skeleton;
   render::Attrib skel_attrib;
 };

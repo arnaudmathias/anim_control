@@ -37,6 +37,7 @@ class MeshLoader {
   std::unordered_map<std::string, BoneInfo> bone_map;
   std::unordered_map<std::string, unsigned short> node_map;
   std::unordered_map<std::string, TextureInfo> texture_map;
+  std::string file_name;
 
   void processHierarchy(const aiScene* scene, aiNode* node,
                         unsigned short parent_id,

@@ -24,6 +24,8 @@ struct AnimData {
 };
 
 glm::mat4 animate(AnimData* data, std::string key, float timestamp);
+float get_animation_time(float timestamp, float animation_start,
+                         float ticks_per_second, float ticks_duration);
 glm::vec3 interpolatePosition(float time_in_seconds,
                               const std::vector<AnimKey<glm::vec3>>& positions);
 glm::quat interpolateRotation(float time_in_seconds,

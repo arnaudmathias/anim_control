@@ -90,6 +90,7 @@ void MeshLoader::processHierarchy(const aiScene* scene, aiNode* node,
 
 Model* MeshLoader::loadScene(std::string filename) {
   reset();
+  file_name = filename;
   Assimp::Importer importer;
   const aiScene* scene = importer.ReadFile(
       filename, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
@@ -204,7 +205,7 @@ void MeshLoader::loadAnimations(const aiScene* scene) {
     const aiAnimation* anim = scene->mAnimations[i];
     std::string anim_name = std::string(anim->mName.C_Str());
     if (anim_name.empty()) {
-      anim_name = std::to_string(i);
+      anim_name = file_name;
     }
     AnimData anim_data;
     anim_data.name = anim_name;
@@ -258,7 +259,8 @@ void MeshLoader::setupSkeleton(const aiScene* scene) {
 
   current_model->skeleton =
       new Skeleton(static_cast<unsigned short>(hierarchy.size()));
-  current_model->skeleton->global_inverse = to_glm(scene->mRootNode->mTransformation);
+  current_model->skeleton->global_inverse =
+      to_glm(scene->mRootNode->mTransformation);
   for (unsigned int i = 0; i < hierarchy.size(); i++) {
     current_model->skeleton->hierarchy[i] = hierarchy[i];
   }
@@ -277,4 +279,5 @@ void MeshLoader::reset() {
   current_model = nullptr;
   bone_map.clear();
   node_map.clear();
+  file_name = "";
 }
