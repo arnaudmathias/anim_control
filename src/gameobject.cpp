@@ -58,10 +58,8 @@ void GameObject::update(Env& env) {
   if (physicsComponent != nullptr) {
     physicsComponent->update(*this, env.getDeltaTime());
   }
-  // this->positionRelative = this->transform.position - oldPosition;
   _renderAttrib.model = getWorldTransform();
   if (animationComponent) {
-    // animationComponent->update();
     animationComponent->updateBones(env.getAbsoluteTime(), _renderAttrib.bones);
     animationComponent->updateAnimDebugAttrib(_renderAttrib.model);
   }

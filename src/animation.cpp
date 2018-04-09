@@ -31,6 +31,7 @@ glm::mat4 animate(AnimData* data, std::string key, float timestamp) {
   res = mat_translation * mat_rotation * mat_scale;
   return (res);
 }
+
 glm::vec3 interpolatePosition(
     float time_in_seconds, const std::vector<AnimKey<glm::vec3>>& positions) {
   glm::vec3 position = glm::vec3(0.0f);
@@ -40,9 +41,9 @@ glm::vec3 interpolatePosition(
   }
   unsigned int index = nearest_index(time_in_seconds, positions);
   float deltaTime = positions[index + 1].time - positions[index].time;
-  float inter_factor = (positions[index].time - time_in_seconds) / deltaTime;
+  float inter_factor = (time_in_seconds - positions[index].time) / deltaTime;
   position = glm::lerp(positions[index].value, positions[index + 1].value,
-                       1.0f - inter_factor);
+                       inter_factor);
   return (position);
 }
 
@@ -55,9 +56,9 @@ glm::quat interpolateRotation(
   }
   unsigned int index = nearest_index(time_in_seconds, rotations);
   float deltaTime = rotations[index + 1].time - rotations[index].time;
-  float inter_factor = (rotations[index].time - time_in_seconds) / deltaTime;
-  rotation = glm::slerp(rotations[index].value, rotations[index + 1].value,
-                        1.0f - inter_factor);
+  float inter_factor = (time_in_seconds - rotations[index].time) / deltaTime;
+  rotation = glm::normalize(glm::lerp(
+      rotations[index].value, rotations[index + 1].value, inter_factor));
   return (rotation);
 }
 
@@ -70,9 +71,9 @@ glm::vec3 interpolateScaling(float time_in_seconds,
   }
   unsigned int index = nearest_index(time_in_seconds, scalings);
   float deltaTime = scalings[index + 1].time - scalings[index].time;
-  float inter_factor = (scalings[index].time - time_in_seconds) / deltaTime;
-  scaling = glm::lerp(scalings[index].value, scalings[index + 1].value,
-                      1.0f - inter_factor);
+  float inter_factor = (time_in_seconds - scalings[index + 1].time) / deltaTime;
+  scaling =
+      glm::lerp(scalings[index].value, scalings[index + 1].value, inter_factor);
   return (scaling);
 }
 

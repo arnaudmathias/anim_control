@@ -97,10 +97,10 @@ glm::mat4 AnimationController::blend(float t, std::string node_name) {
   for (unsigned int i = 1; i < _states.size(); i++) {
     float weight = _states[i].weight;
     interpolated_position =
-        glm::mix(interpolated_position, positions[i], weight);
+        glm::lerp(interpolated_position, positions[i], weight);
     interpolated_rotation =
         glm::slerp(interpolated_rotation, rotations[i], weight);
-    interpolated_scaling = glm::mix(interpolated_scaling, scalings[i], weight);
+    interpolated_scaling = glm::lerp(interpolated_scaling, scalings[i], weight);
   }
 
   glm::mat4 mat_translation = glm::translate(interpolated_position);
