@@ -95,4 +95,14 @@ void Game::print_debug_info(const Env& env, render::Renderer& renderer,
                           " y: " + float_to_string(camera.pos.y, 2) +
                           " z: " + float_to_string(camera.pos.z, 2),
                       glm::vec3(1.0f, 1.0f, 1.0f));
+
+  renderer.renderText(10.0f, fheight - 50.0f, 0.35f,
+                      "time: abs(" + float_to_string(env.getAbsoluteTime(), 2) +
+                          ") dt(" + float_to_string(env.getDeltaTime(), 4) +
+                          ") modifier(" +
+                          float_to_string(env.getTimeModifier(), 2.0f) + ")",
+                      glm::vec3(1.0f, 1.0f, 1.0f));
+  renderer.renderText(fwidth - 130.0f, fheight - 25.0f, 0.35f,
+                      float_to_string(env.getFPS(), 2) + " fps",
+                      glm::vec3(1.0f, 1.0f, 1.0f));
 }

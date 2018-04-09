@@ -133,6 +133,8 @@ void Env::update() {
     inputHandler.keys[GLFW_KEY_PERIOD] = false;
     _time_modifier += 0.1f;
   }
+  _time_modifier = _time_modifier < 0.0f ? 0.0f : _time_modifier;
+  _time_modifier = _time_modifier > 2.0f ? 2.0f : _time_modifier;
 }
 
 void Env::updateFpsCounter() {
@@ -159,6 +161,8 @@ float Env::getAbsoluteTime() const { return (this->_absoluteTime); }
 float Env::getFrame() const { return (this->_frame); }
 
 float Env::getFPS() const { return (this->_fps); }
+
+float Env::getTimeModifier() const { return (this->_time_modifier); }
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action,
                  int mode) {

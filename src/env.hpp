@@ -31,6 +31,7 @@ class Env {
   float getAbsoluteTime() const;
   float getFrame() const;
   float getFPS() const;
+  float getTimeModifier() const;
   int width;
   int height;
   bool has_resized;
