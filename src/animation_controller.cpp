@@ -109,3 +109,23 @@ glm::mat4 AnimationController::blend(float t, std::string node_name) {
   res = mat_translation * mat_rotation * mat_scale;
   return (res);
 }
+
+float AnimationController::nearestTimeframe(AnimData* anim_data) {
+  // TODO: compare new animation with current one and return frame time which
+  // require the least amount of interpolation
+  /*
+  if (anim_data != nullptr && _states.empty() == false &&
+      _states.end()->data != nullptr) {
+    unsigned int i = 0;
+    for (const auto& channel : anim_data->data->channels) {
+      std::string channel_name = channel.first;
+      for (int i = 0; i < channel.second.position_keys->size(); i++) {
+        channel[i] =
+      }
+      i++;
+    }
+  } else {
+    return (0.0f);
+  }*/
+  return (0.0f);
+}

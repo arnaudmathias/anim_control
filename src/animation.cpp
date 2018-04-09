@@ -39,11 +39,10 @@ glm::vec3 interpolatePosition(
     return (position);
   }
   unsigned int index = nearest_index(time_in_seconds, positions);
-  /*float deltaTime = positions[index + 1].time - positions[index].time;
+  float deltaTime = positions[index + 1].time - positions[index].time;
   float inter_factor = (positions[index].time - time_in_seconds) / deltaTime;
-  position = glm::mix(positions[index].value, positions[index + 1].value,
-                      inter_factor);*/
-  position = positions[index].value;
+  position = glm::lerp(positions[index].value, positions[index + 1].value,
+                       1.0f - inter_factor);
   return (position);
 }
 
@@ -55,7 +54,10 @@ glm::quat interpolateRotation(
     return (rotation);
   }
   unsigned int index = nearest_index(time_in_seconds, rotations);
-  rotation = rotations[index].value;
+  float deltaTime = rotations[index + 1].time - rotations[index].time;
+  float inter_factor = (rotations[index].time - time_in_seconds) / deltaTime;
+  rotation = glm::slerp(rotations[index].value, rotations[index + 1].value,
+                        1.0f - inter_factor);
   return (rotation);
 }
 
@@ -67,7 +69,10 @@ glm::vec3 interpolateScaling(float time_in_seconds,
     return (scaling);
   }
   unsigned int index = nearest_index(time_in_seconds, scalings);
-  scaling = scalings[index].value;
+  float deltaTime = scalings[index + 1].time - scalings[index].time;
+  float inter_factor = (scalings[index].time - time_in_seconds) / deltaTime;
+  scaling = glm::lerp(scalings[index].value, scalings[index + 1].value,
+                      1.0f - inter_factor);
   return (scaling);
 }
 

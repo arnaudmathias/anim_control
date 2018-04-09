@@ -24,10 +24,9 @@ class AnimationController {
   AnimationController& operator=(AnimationController const& rhs);
 
   void changeAnimation(AState state);
-  void changeAnimation(float t, AnimData* data, float start_weight,
-                       AnimNodeState node_state);
   void update(float t, Skeleton* skeleton);
   glm::mat4 blend(float t, std::string node_name);
+  float nearestTimeframe(AnimData *data);
 
  private:
   std::vector<AState> _states;
