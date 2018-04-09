@@ -33,10 +33,10 @@ void AnimationController::update(float t, Skeleton* skeleton) {
   }
   for (auto& state : _states) {
     if (state.node_state == AnimNodeState::Increase) {
-      state.weight += 0.01f;
+      state.weight += state.blend_speed;
     }
     if (state.node_state == AnimNodeState::Decrease) {
-      state.weight -= 0.01f;
+      state.weight -= state.blend_speed;
     }
     if (state.weight > 1.0f) {
       state.weight = 1.0f;
