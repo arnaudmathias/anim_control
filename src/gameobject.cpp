@@ -223,7 +223,7 @@ void InputComponent::update(GameObject& go, InputHandler& inputHandler) {
       go.physicsComponent->start_rotation = go.transform.rotation;
       go.physicsComponent->target_rotation = rot[direction_index];
       go.physicsComponent->rotation_factor = 0.0f;
-    } else {
+    } else if (go.physicsComponent->state == PhysicsComponent::State::Idling) {
       if (go.animationComponent) {
         go.animationComponent->changeAnimation(0.0f,
                                                AnimationComponent::State::Idle);

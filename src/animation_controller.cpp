@@ -18,6 +18,13 @@ AnimationController& AnimationController::operator=(
 void AnimationController::changeAnimation(float t, AnimData* data,
                                           float start_weight,
                                           AnimNodeState node_state) {
+  if (_states.empty() == false && _states.end()->data == data) {
+    // This animation is already playing, we don't need to push a new state
+    return;
+  }
+  for (auto& st : _states) {
+    st.node_state = AnimNodeState::Decrease;
+  }
   AState state = {};
   state.data = data;
   state.weight = start_weight;
@@ -30,32 +37,30 @@ void AnimationController::update(float t, Skeleton* skeleton) {
   if (skeleton == nullptr) {
     return;
   }
-  _states.erase(
-      std::remove_if(_states.begin(), _states.end(),
-                     [](AState& state) {
-                       if (state.weight == 0.0f &&
-                           state.node_state == AnimNodeState::Constant) {
-                         return (true);
-                       }
-                       return (false);
-                     }),
-      _states.end());
   for (auto& state : _states) {
-    if (state.weight < 1.0f && state.node_state == AnimNodeState::Increase) {
+    if (state.node_state == AnimNodeState::Increase) {
       state.weight += 0.01f;
     }
-    if (state.weight > 0.0f && state.node_state == AnimNodeState::Decrease) {
+    if (state.node_state == AnimNodeState::Decrease) {
       state.weight -= 0.01f;
     }
-    if (state.weight >= 1.0f) {
+    if (state.weight > 1.0f) {
       state.weight = 1.0f;
       state.node_state = AnimNodeState::Constant;
     }
-    if (state.weight <= 0.0f) {
+    if (state.weight < 0.0f) {
       state.weight = 0.0f;
       state.node_state = AnimNodeState::Constant;
     }
   }
+  _states.erase(std::remove_if(_states.begin(), _states.end(),
+                               [](AState& state) {
+                                 if (state.weight <= 0.0f) {
+                                   return (true);
+                                 }
+                                 return (false);
+                               }),
+                _states.end());
   for (auto node_it : skeleton->node_ids) {
     std::string node_name = node_it.first;
     unsigned short bone_index = node_it.second;
@@ -82,7 +87,6 @@ glm::mat4 AnimationController::blend(float t, std::string node_name) {
       atimes[i] = 0.0f;
     }
   }
-
   for (unsigned int i = 0; i < _states.size(); i++) {
     if (_states[i].data == nullptr || _states[i].weight == 0.0f) continue;
     auto it = _states[i].data->channels.find(node_name);
@@ -93,18 +97,16 @@ glm::mat4 AnimationController::blend(float t, std::string node_name) {
     rotations[i] = interpolateRotation(atimes[i], it->second.rotation_keys);
     scalings[i] = interpolateScaling(atimes[i], it->second.scale_keys);
   }
-  if (_states[0].weight < 1.0f) {
-    _states[0].weight += 0.01f;
-  }
   glm::vec3 interpolated_position = positions[0];
   glm::quat interpolated_rotation = rotations[0];
   glm::vec3 interpolated_scaling = scalings[0];
   for (unsigned int i = 1; i < _states.size(); i++) {
-    // TODO: use actual node weight
-    interpolated_position = glm::mix(interpolated_position, positions[i], 0.5f);
+    float weight = _states[i].weight;
+    interpolated_position =
+        glm::mix(interpolated_position, positions[i], weight);
     interpolated_rotation =
-        glm::slerp(interpolated_rotation, rotations[i], 0.5f);
-    interpolated_scaling = glm::mix(interpolated_scaling, scalings[i], 0.5f);
+        glm::slerp(interpolated_rotation, rotations[i], weight);
+    interpolated_scaling = glm::mix(interpolated_scaling, scalings[i], weight);
   }
 
   glm::mat4 mat_translation = glm::translate(interpolated_position);

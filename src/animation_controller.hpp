@@ -10,7 +10,7 @@ enum class AnimNodeState { Increase, Decrease, Constant };
 
 struct AState {
   AnimData* data = nullptr;
-  float weight = 0.5f;
+  float weight = 1.0f;
   float blend_speed = 0.5f;
   float animation_start = 0.0f;
   AnimNodeState node_state;
