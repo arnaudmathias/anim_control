@@ -26,7 +26,6 @@ Game::Game(void) {
   _entities.push_back(new GameObject(
       nullptr, _models[2], &_animations, glm::vec3(-25.0f, 0.0f, -25.0f),
       glm::vec3(0.0f), glm::vec3(50.0f, 1.0f, 50.0f)));
-  // Extract animations data from models
 }
 
 Game::Game(Game const& src) { *this = src; }

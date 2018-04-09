@@ -15,21 +15,15 @@ AnimationController& AnimationController::operator=(
   return (*this);
 }
 
-void AnimationController::changeAnimation(float t, AnimData* data,
-                                          float start_weight,
-                                          AnimNodeState node_state) {
-  if (_states.empty() == false && _states.end()->data == data) {
+void AnimationController::changeAnimation(AState state) {
+  if (_states.empty() == false && _states.end()->data == state.data) {
     // This animation is already playing, we don't need to push a new state
     return;
   }
   for (auto& st : _states) {
+    // Invalide every states already running
     st.node_state = AnimNodeState::Decrease;
   }
-  AState state = {};
-  state.data = data;
-  state.weight = start_weight;
-  state.animation_start = t;
-  state.node_state = node_state;
   _states.push_back(state);
 }
 

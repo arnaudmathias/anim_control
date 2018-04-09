@@ -159,7 +159,13 @@ void AnimationComponent::changeAnimation(float timestamp, State state) {
     data = &anim_it->second;
   }
   if (data != nullptr) {
-    controller.changeAnimation(timestamp, data, 0.0f, AnimNodeState::Increase);
+    AState state = {};
+    state.data = data;
+    state.weight = 0.0f;
+    state.blend_speed = 0.01f;
+    state.animation_start = timestamp;
+    state.node_state = AnimNodeState::Increase;
+    controller.changeAnimation(state);
   }
 }
 

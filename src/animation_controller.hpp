@@ -11,7 +11,7 @@ enum class AnimNodeState { Increase, Decrease, Constant };
 struct AState {
   AnimData* data = nullptr;
   float weight = 1.0f;
-  float blend_speed = 0.5f;
+  float blend_speed = 0.01f;
   float animation_start = 0.0f;
   AnimNodeState node_state;
 };
@@ -23,6 +23,7 @@ class AnimationController {
   ~AnimationController(void);
   AnimationController& operator=(AnimationController const& rhs);
 
+  void changeAnimation(AState state);
   void changeAnimation(float t, AnimData* data, float start_weight,
                        AnimNodeState node_state);
   void update(float t, Skeleton* skeleton);
