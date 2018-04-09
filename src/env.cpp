@@ -3,11 +3,7 @@
 Env::Env() : Env(0, 0) {}
 
 Env::Env(unsigned short width, unsigned short height)
-    : width(width),
-      height(height),
-      _frame(0),
-      _window_width(1280),
-      _window_height(720) {
+    : width(width), height(height) {
   if (!glfwInit()) return;
   setupWindowHint();
   GLFWmonitor *primary_monitor = glfwGetPrimaryMonitor();
@@ -15,19 +11,20 @@ Env::Env(unsigned short width, unsigned short height)
   if (width == 0 && height == 0) {
     this->width = mode->width;
     this->height = mode->height;
-    window = glfwCreateWindow(this->width, this->height, "ft_vox",
+    window = glfwCreateWindow(this->width, this->height, "anim_control",
                               primary_monitor, NULL);
     glfwSetWindowMonitor(window, primary_monitor, 0, 0, mode->width,
                          mode->height, mode->refreshRate);
   } else {
-    _window_width = width;
-    _window_height = height;
-    window = glfwCreateWindow(width, height, "ft_vox", NULL, NULL);
-    glfwSetWindowMonitor(window, NULL, (mode->width / 2) - (_window_width / 2),
-                         (mode->height / 2) - (_window_height / 2),
-                         _window_width, _window_height, 0);
-    inputHandler.mousex = _window_width / 2;
-    inputHandler.mousey = _window_height / 2;
+    _windowed_width = width;
+    _windowed_height = height;
+    window = glfwCreateWindow(width, height, "anim_control", NULL, NULL);
+    glfwSetWindowMonitor(window, NULL,
+                         (mode->width / 2) - (_windowed_width / 2),
+                         (mode->height / 2) - (_windowed_height / 2),
+                         _windowed_width, _windowed_height, 0);
+    inputHandler.mousex = _windowed_width / 2;
+    inputHandler.mousey = _windowed_height / 2;
   }
   if (!window) {
     std::cout << "Could not create window\n";
@@ -65,15 +62,16 @@ void Env::toggleFullscreen() {
     // after a window -> fullscreen transition
     // Doesn't happen on fullscreen -> window
     // GLFW bug ?
-    inputHandler.mousex -= (this->_window_width / 2);
-    inputHandler.mousey -= (this->_window_height / 2);
+    inputHandler.mousex -= (this->_windowed_width / 2);
+    inputHandler.mousey -= (this->_windowed_height / 2);
     this->has_resized = true;
   } else {
-    glfwSetWindowMonitor(window, NULL, (mode->width / 2) - (_window_width / 2),
-                         (mode->height / 2) - (_window_height / 2),
-                         _window_width, _window_height, 0);
-    this->width = _window_width;
-    this->height = _window_height;
+    glfwSetWindowMonitor(window, NULL,
+                         (mode->width / 2) - (_windowed_width / 2),
+                         (mode->height / 2) - (_windowed_height / 2),
+                         _windowed_width, _windowed_height, 0);
+    this->width = _windowed_width;
+    this->height = _windowed_height;
   }
   // Query and update framebuffer size
   int wframe, hframe;
@@ -115,18 +113,25 @@ void Env::update() {
   static double previousTime = glfwGetTime();
   static int frame_count;
   double currentTime = glfwGetTime();
-  double deltaTime = currentTime - previousTime;
+  double deltaTime = (currentTime - previousTime) * _time_modifier;
   previousTime = currentTime;
   this->_deltaTime = static_cast<float>(deltaTime);
-  this->_absoluteTime = static_cast<float>(currentTime);
+  this->_absoluteTime += this->_deltaTime;
   this->_frame++;
-
   if (inputHandler.keys[GLFW_KEY_ESCAPE]) {
     glfwSetWindowShouldClose(window, 1);
   }
   if (inputHandler.keys[GLFW_KEY_F]) {
     inputHandler.keys[GLFW_KEY_F] = false;
     toggleFullscreen();
+  }
+  if (inputHandler.keys[GLFW_KEY_COMMA]) {
+    inputHandler.keys[GLFW_KEY_COMMA] = false;
+    _time_modifier -= 0.1f;
+  }
+  if (inputHandler.keys[GLFW_KEY_PERIOD]) {
+    inputHandler.keys[GLFW_KEY_PERIOD] = false;
+    _time_modifier += 0.1f;
   }
 }
 

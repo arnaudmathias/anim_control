@@ -41,13 +41,14 @@ class Env {
   void setupContext();
   void setupWindow();
   void setupWindowHint();
-  float _absoluteTime;
-  float _deltaTime;
-  float _frame;
-  float _fps;
+  float _time_modifier = 1.0f;
+  float _absoluteTime = 0.0f;
+  float _deltaTime = 0.0f;
+  float _frame = 0.0f;
+  float _fps = 0.0f;
   bool _fullscreen = false;
-  int _window_width;
-  int _window_height;
+  int _windowed_width = 1280;
+  int _windowed_height = 720;
 };
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action,
